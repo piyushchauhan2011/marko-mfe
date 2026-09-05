@@ -11,31 +11,24 @@ const FRAGMENTS = {
   recommendations: 'http://localhost:3105',
 };
 
-const FRAGMENT_ASSETS = {
-  navigation: {
-    css: 'http://localhost:3101/assets/navigation.css',
-    js: 'http://localhost:3101/assets/navigation.js',
-  },
-  search: {
-    css: 'http://localhost:3102/assets/search.css',
-    js: 'http://localhost:3102/assets/search.js',
-  },
-  details: {
-    css: 'http://localhost:3103/assets/details.css',
-    js: 'http://localhost:3103/assets/details.js',
-  },
-  reviews: {
-    css: 'http://localhost:3104/assets/reviews.css',
-    js: 'http://localhost:3104/assets/reviews.js',
-  },
-  recommendations: {
-    css: 'http://localhost:3105/assets/recommendations.css',
-    js: 'http://localhost:3105/assets/recommendations.js',
-  },
-};
+const FRAGMENT_ASSETS = Object.fromEntries(
+  Object.entries(FRAGMENTS).map(([name, baseUrl]) => [
+    name,
+    {
+      css: `http://localhost:${PORT}/assets/${name}.css`,
+      js: `http://localhost:${PORT}/assets/${name}.js`,
+    },
+  ])
+);
 
 const bookings = new Map();
 const STREAM_DELAY_MS = 420;
+const FRAGMENT_STREAM_DELAY_MS = {
+  search: 160,
+  details: 540,
+  reviews: 860,
+  recommendations: 300,
+};
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -56,8 +49,8 @@ async function renderFragment(key, hotelId = 'harbor-view') {
   }
 
   const html = await response.text();
-  const cssUrl = response.headers.get('x-fragment-css') || '';
-  const jsUrl = response.headers.get('x-fragment-js') || '';
+  const cssUrl = FRAGMENT_ASSETS[key]?.css || response.headers.get('x-fragment-css') || '';
+  const jsUrl = FRAGMENT_ASSETS[key]?.js || response.headers.get('x-fragment-js') || '';
 
   return {
     html,
@@ -906,8 +899,11 @@ function buildConfirmationPage(hotelId) {
   </html>`;
 }
 
-async function safeRenderFragment(key, hotelId) {
+async function safeRenderFragment(key, hotelId, delayMs = 0) {
   try {
+    if (delayMs > 0) {
+      await sleep(delayMs);
+    }
     return await renderFragment(key, hotelId);
   } catch (error) {
     return {
@@ -920,10 +916,10 @@ async function safeRenderFragment(key, hotelId) {
 
 async function renderPage(hotelId) {
   const [search, details, reviews, recommendations] = await Promise.all([
-    safeRenderFragment('search', hotelId),
-    safeRenderFragment('details', hotelId),
-    safeRenderFragment('reviews', hotelId),
-    safeRenderFragment('recommendations', hotelId),
+    safeRenderFragment('search', hotelId, FRAGMENT_STREAM_DELAY_MS.search),
+    safeRenderFragment('details', hotelId, FRAGMENT_STREAM_DELAY_MS.details),
+    safeRenderFragment('reviews', hotelId, FRAGMENT_STREAM_DELAY_MS.reviews),
+    safeRenderFragment('recommendations', hotelId, FRAGMENT_STREAM_DELAY_MS.recommendations),
   ]);
 
   return buildPage(hotelId, { search, details, reviews, recommendations });
@@ -1387,11 +1383,21 @@ async function* streamPage(hotelId) {
 
   yield headPrefix;
 
-  for (const name of fragmentOrder) {
-    const fragment = await safeRenderFragment(name, hotelId);
-    const cssTag = fragment.cssUrl ? `<link rel="stylesheet" href="${fragment.cssUrl}" />` : '';
-    const jsTag = fragment.jsUrl ? `<script defer src="${fragment.jsUrl}"></script>` : '';
-    yield `${cssTag}${jsTag}${createFragmentContainer(name, selectedHotel.id).replace(`<!-- fragment:${name} -->`, fragment.html)}`;
+  const pending = new Map(
+    fragmentOrder.map((name) => [name, safeRenderFragment(name, hotelId, FRAGMENT_STREAM_DELAY_MS[name])])
+  );
+
+  while (pending.size > 0) {
+    const next = await Promise.race(
+      [...pending.entries()].map(([name, promise]) =>
+        promise.then((fragment) => ({ name, fragment }))
+      )
+    );
+
+    pending.delete(next.name);
+    const cssTag = next.fragment.cssUrl ? `<link rel="stylesheet" href="${next.fragment.cssUrl}" />` : '';
+    const jsTag = next.fragment.jsUrl ? `<script defer src="${next.fragment.jsUrl}"></script>` : '';
+    yield `${cssTag}${jsTag}${createFragmentContainer(next.name, selectedHotel.id).replace(`<!-- fragment:${next.name} -->`, next.fragment.html)}`;
     await sleep(STREAM_DELAY_MS);
   }
 
@@ -1481,6 +1487,39 @@ app.post('/booking/confirm/:hotelId', async (request, reply) => {
 });
 
 app.get('/health', async () => ({ ok: true, hotel: getHotelById('harbor-view').name }));
+
+app.get('/assets/:assetName', async (request, reply) => {
+  const assetName = request.params.assetName;
+  const match = /^([a-z-]+)\.(css|js)$/.exec(assetName);
+
+  if (!match) {
+    reply.code(404);
+    return { error: 'Unknown asset name' };
+  }
+
+  const [, fragmentName, fileType] = match;
+  const fragmentBaseUrl = FRAGMENTS[fragmentName];
+
+  if (!fragmentBaseUrl) {
+    reply.code(404);
+    return { error: `Unknown fragment asset: ${fragmentName}` };
+  }
+
+  const upstreamUrl = `${fragmentBaseUrl}/assets/${assetName}`;
+  const upstreamResponse = await fetch(upstreamUrl);
+
+  if (!upstreamResponse.ok) {
+    reply.code(upstreamResponse.status || 502);
+    return { error: `Asset fetch failed for ${fragmentName}` };
+  }
+
+  const contentType = fileType === 'css' ? 'text/css; charset=utf-8' : 'application/javascript; charset=utf-8';
+  const buffer = Buffer.from(await upstreamResponse.arrayBuffer());
+
+  reply.type(contentType);
+  reply.header('Cache-Control', 'no-cache');
+  return reply.send(buffer);
+});
 
 app.get('/fragment/:name', async (request, reply) => {
   const { name } = request.params;
