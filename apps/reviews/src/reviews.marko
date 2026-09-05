@@ -1,0 +1,20 @@
+<div class="fragment reviews-fragment">
+  <section class="panel reviews-panel">
+    <div class="section-heading">
+      <p class="eyebrow">Guest reviews</p>
+      <h2>What travelers say</h2>
+    </div>
+
+    <div class="reviews-list">
+      <for|review| of=input.reviews>
+        <article class="review-card">
+          <div class="review-head">
+            <strong>${review.author}</strong>
+            <span>${review.rating} ★</span>
+          </div>
+          <p>${review.comment}</p>
+        </article>
+      </for>
+    </div>
+  </section>
+</div>

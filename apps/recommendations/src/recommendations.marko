@@ -1,0 +1,21 @@
+<div class="fragment recommendations-fragment">
+  <section class="panel recommendations-panel">
+    <div class="section-heading">
+      <p class="eyebrow">You might also like</p>
+      <h2>More stays nearby</h2>
+    </div>
+
+    <div class="recommendation-grid">
+      <for|item| of=input.items>
+        <article class="recommendation-card" data-hotel-id=item.id>
+          <h3>${item.name}</h3>
+          <p>${item.reason}</p>
+          <div class="recommendation-footer">
+            <strong>$${item.price}</strong>
+            <span>/night</span>
+          </div>
+        </article>
+      </for>
+    </div>
+  </section>
+</div>

@@ -1,0 +1,31 @@
+<div class="fragment details-fragment">
+  <section class="panel details-panel">
+    <div class="meta-row">
+      <span class="pill">${input.hotel.tag}</span>
+      <span class="text-muted">${input.hotel.rating} ★</span>
+    </div>
+
+    <div class="details-grid">
+      <div>
+        <p class="eyebrow">Featured stay</p>
+        <h2>${input.hotel.name}</h2>
+        <p class="location">${input.hotel.location}</p>
+        <p class="description large">${input.hotel.description}</p>
+      </div>
+
+      <div class="booking-card">
+        <div class="booking-price">
+          <strong>$${input.hotel.price}</strong>
+          <span>/ night</span>
+        </div>
+        <button class="primary-button" type="button" data-book-hotel=input.hotel.id>Book now</button>
+      </div>
+    </div>
+
+    <ul class="feature-list">
+      <for|feature| of=input.hotel.features>
+        <li>${feature}</li>
+      </for>
+    </ul>
+  </section>
+</div>

@@ -1,0 +1,10 @@
+{
+  "name": "@marko-mfe/mock-data",
+  "version": "1.0.0",
+  "private": true,
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "type": "commonjs"
+}

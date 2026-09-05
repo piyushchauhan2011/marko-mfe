@@ -1,0 +1,16 @@
+{
+  "name": "@marko-mfe/reviews",
+  "version": "1.0.0",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "dev": "node --watch src/server.js",
+    "build": "node --check src/server.js",
+    "start": "node src/server.js"
+  },
+  "dependencies": {
+    "@marko-mfe/mock-data": "workspace:*",
+    "@marko/compiler": "^5.42.4",
+    "marko": "^6.1.12"
+  }
+}
