@@ -1,46 +1,60 @@
-# Marko MFE hotel booking monorepo
+# HarborStay — Marko SSR MFE hotel booking demo
 
-This repo demonstrates a Tailor-style microfrontend setup using a Turborepo monorepo, a Fastify composer shell, and several Marko SSR fragment apps for a simple hotel-booking flow.
+HarborStay is a lightweight microfrontend demo built around a Turborepo monorepo, a Fastify composer shell, and multiple Marko SSR fragment apps. It models a premium travel booking experience with independent UI fragments, hotel-specific routes, and a confirmation flow.
+
+## What this demo includes
+
+- Monorepo structure with Turborepo
+- SSR-based Marko fragment apps
+- Composer shell that assembles fragments into a single page
+- Hotel catalog with multiple destinations
+- Hotel-by-route URLs like `/hotel/moss-lantern`
+- Booking confirmation flow and success page
+- Fragment JSON envelope contract with metadata headers
+- Optional tmux-based local runner
 
 ## Architecture
 
-- Composer shell: `apps/composer` — builds the overall page, streams SSR HTML, and handles booking confirmation routes
-- Navigation MFE: `apps/navigation` — Marko-rendered navigation fragment
-- Hotel search MFE: `apps/hotel-search` — Marko-rendered hotel cards with multiple destinations
-- Hotel details MFE: `apps/hotel-details` — Marko-rendered booking detail fragment for each hotel
-- Reviews MFE: `apps/reviews` — Marko-rendered review cards
-- Recommendations MFE: `apps/recommendations` — Marko-rendered related stay cards
-- Shared data: `packages/mock-data` — mock hotel data including the extra demo property and booking metadata
+- Composer shell: `apps/composer` — assembles the overall page and handles routes / confirmation pages
+- Navigation MFE: `apps/navigation` — top navigation fragment
+- Search MFE: `apps/hotel-search` — hotel list fragment
+- Hotel details MFE: `apps/hotel-details` — selected stay detail fragment
+- Reviews MFE: `apps/reviews` — guest review cards
+- Recommendations MFE: `apps/recommendations` — related stays
+- Shared data: `packages/mock-data` — mock hotel, review, and recommendation data
 
-The demo now includes a fourth hotel, a server-side booking confirmation flow, and a stronger fragment contract that exposes metadata in JSON envelopes alongside HTML.
-
-## Local development
+## Run locally
 
 1. Install dependencies:
    `pnpm install`
-2. Start the monorepo:
+2. Start the workspace:
    `pnpm dev`
-3. Open the browser at:
+3. Open the app:
    `http://localhost:3100`
 
-## Services and ports
+## Available routes
 
-- Composer: http://localhost:3100
-- Navigation fragment: http://localhost:3101
-- Search fragment: http://localhost:3102
-- Hotel details fragment: http://localhost:3103
-- Reviews fragment: http://localhost:3104
-- Recommendations fragment: http://localhost:3105
+- Home: `http://localhost:3100/`
+- Hotel detail: `http://localhost:3100/hotel/harbor-view`
+- Another hotel: `http://localhost:3100/hotel/moss-lantern`
+- Booking confirmation: `http://localhost:3100/booking/confirm/moss-lantern`
+
+## Fragment endpoints
+
+- Navigation: `http://localhost:3101`
+- Search: `http://localhost:3102`
+- Details: `http://localhost:3103`
+- Reviews: `http://localhost:3104`
+- Recommendations: `http://localhost:3105`
 
 ## Optional tmux helper
 
-The repo already works with Turborepo's parallel dev runner, which is the simplest option.
-If you want a tmux session locally, run:
+The monorepo runs well with Turborepo's native parallel dev runner. If you want a tmux session locally, use:
 
 `./scripts/start-tmux.sh`
 
-This script creates or reuses a `marko-mfe` tmux session and runs the monorepo there.
+This creates or reuses a `marko-mfe` tmux session and runs the project from there.
 
 ## Notes
 
-This is intentionally a lightweight microfrontend demo rather than a production-grade platform. The shell stays framework-neutral and composes independent HTML fragments, while each fragment owns its own Marko SSR output.
+This is a demo-first microfrontend setup rather than a production platform. The goal is to show how independent SSR fragments can be composed behind a neutral shell while keeping each fragment independently deployable and easy to reason about.

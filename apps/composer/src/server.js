@@ -46,61 +46,83 @@ function buildPage(hotelId, fragments) {
       <title>HarborStay Booking</title>
       <style>
         :root {
-          --bg: #f4efe8;
-          --panel: #fffdf9;
-          --card: #f7f3ee;
-          --primary: #155b47;
-          --primary-strong: #0f4339;
-          --purple: #6156a4;
-          --text: #1b1b1e;
-          --muted: #5d5d63;
-          --line: rgba(27, 27, 30, 0.09);
-          --shadow: 0 22px 68px rgba(21, 91, 71, 0.08);
-         --loading: linear-gradient(90deg, rgba(21, 91, 71, 0.08), rgba(97, 86, 164, 0.08), rgba(21, 91, 71, 0.08));
+         --bg: #f5efe7;
+         --bg-deep: #eef4f2;
+         --panel: rgba(255, 255, 255, 0.8);
+         --card: #fffdfb;
+         --primary: #0d6b5f;
+         --primary-strong: #0a4d44;
+         --primary-soft: #dff6ef;
+         --accent: #ff8f5a;
+         --accent-deep: #e66d3c;
+         --purple: #6156a4;
+         --text: #172328;
+         --muted: #5f696f;
+         --line: rgba(22, 44, 48, 0.09);
+         --shadow: 0 24px 60px rgba(17, 62, 58, 0.13);
+         --loading: linear-gradient(90deg, rgba(13, 107, 95, 0.09), rgba(255, 143, 90, 0.09), rgba(13, 107, 95, 0.09));
        }
 
        * { box-sizing: border-box; }
        html, body { margin: 0; }
        body {
-         background: linear-gradient(180deg, #f7f4ee 0%, #f0eadf 100%);
+         background:
+           radial-gradient(circle at top right, rgba(255, 143, 90, 0.18), transparent 24%),
+           radial-gradient(circle at top left, rgba(13, 107, 95, 0.14), transparent 28%),
+           linear-gradient(180deg, #f8f5f0 0%, #f1e9df 100%);
          color: var(--text);
-         font-family: Inter, Arial, sans-serif;
-       }
-
-       body {
-         background: radial-gradient(circle at top, rgba(255,255,255,0.7), transparent 32%), linear-gradient(180deg, #f7f4ee 0%, #f0eadf 100%);
+         font-family: Inter, "Segoe UI", sans-serif;
        }
 
        .page-shell {
          max-width: 1220px;
          margin: 0 auto;
-         padding: 24px 18px 48px;
+         padding: 28px 18px 56px;
        }
 
        .topbar,
        .panel,
        .booking-panel {
-         background: rgba(255, 255, 255, 0.74);
+         background: rgba(255, 255, 255, 0.78);
          border: 1px solid var(--line);
          border-radius: 24px;
          box-shadow: var(--shadow);
-         backdrop-filter: blur(8px);
+         backdrop-filter: blur(10px);
        }
 
        .topbar {
          display: flex;
          align-items: center;
          justify-content: space-between;
-         padding: 18px 24px;
+         padding: 16px 22px;
          margin-bottom: 24px;
-         gap: 16px;
+         gap: 18px;
+         background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(223, 246, 239, 0.72));
+         border-color: rgba(13, 107, 95, 0.12);
        }
 
        .brand {
          font-size: clamp(1.5rem, 2vw, 1.9rem);
-         font-weight: 800;
-         letter-spacing: -0.06em;
+         font-weight: 900;
+         letter-spacing: -0.08em;
          color: var(--primary-strong);
+         display: flex;
+         align-items: center;
+         gap: 10px;
+       }
+
+       .brand::before {
+         content: "✦";
+         display: inline-flex;
+         align-items: center;
+         justify-content: center;
+         width: 32px;
+         height: 32px;
+         background: linear-gradient(135deg, var(--accent), var(--accent-deep));
+         border-radius: 10px;
+         color: white;
+         font-size: 0.9rem;
+         box-shadow: 0 12px 26px rgba(230, 109, 60, 0.35);
        }
 
        .nav-links {
@@ -182,11 +204,12 @@ function buildPage(hotelId, fragments) {
          display: grid;
          grid-template-columns: repeat(3, minmax(0, 1fr));
          gap: 12px;
-         background: var(--card);
+         background: linear-gradient(135deg, rgba(255,255,255,0.92), rgba(223,246,239,0.66));
          border-radius: 18px;
          margin: 20px 0 24px;
          padding: 14px 18px;
-         border: 1px solid var(--line);
+         border: 1px solid rgba(13, 107, 95, 0.12);
+         box-shadow: inset 0 1px 0 rgba(255,255,255,0.7);
        }
 
        .search-bar span {
@@ -208,24 +231,45 @@ function buildPage(hotelId, fragments) {
        .hotel-card,
        .recommendation-card,
        .review-card {
-         background: var(--card);
+         background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(247,243,238,0.92));
          border: 1px solid var(--line);
          border-radius: 18px;
          padding: 18px;
          transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+         position: relative;
+         overflow: hidden;
+       }
+
+       .hotel-card::before,
+       .recommendation-card::before,
+       .review-card::before {
+         content: "";
+         position: absolute;
+         inset: 0 auto auto 0;
+         width: 100%;
+         height: 3px;
+         background: linear-gradient(90deg, var(--primary), var(--accent));
+         opacity: 0;
+         transition: opacity 0.18s ease;
        }
 
        .hotel-card:hover,
        .recommendation-card:hover,
        .review-card:hover {
          transform: translateY(-2px);
-         box-shadow: 0 16px 32px rgba(21, 91, 71, 0.08);
+         box-shadow: 0 18px 38px rgba(17, 62, 58, 0.08);
+       }
+
+       .hotel-card:hover::before,
+       .recommendation-card:hover::before,
+       .review-card:hover::before {
+         opacity: 1;
        }
 
        .hotel-card.selected,
        .recommendation-card.selected {
-         border-color: rgba(21, 91, 71, 0.48);
-         box-shadow: 0 14px 30px rgba(21, 91, 71, 0.08);
+         border-color: rgba(13, 107, 95, 0.5);
+         box-shadow: 0 18px 32px rgba(13, 107, 95, 0.09);
        }
 
        .hotel-thumb {
