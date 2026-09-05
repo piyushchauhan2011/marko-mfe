@@ -1,0 +1,6 @@
+
+    .recommendations-panel { display: block; }
+    .recommendation-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 18px; }
+    .recommendation-card { background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(247,243,238,0.92)); border: 1px solid rgba(22,44,48,0.09); border-radius: 18px; padding: 18px; }
+    .recommendation-footer { display: flex; align-items: center; justify-content: space-between; }
+  

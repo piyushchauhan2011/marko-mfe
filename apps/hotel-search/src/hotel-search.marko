@@ -14,9 +14,16 @@
       <span>Any week</span>
     </div>
 
+    <div class="filter-row" role="tablist" aria-label="Hotel filters">
+      <button class="filter-chip is-active" type="button" data-filter="all">All stays</button>
+      <button class="filter-chip" type="button" data-filter="value">Value</button>
+      <button class="filter-chip" type="button" data-filter="luxury">Luxury</button>
+      <button class="filter-chip" type="button" data-filter="top-rated">Top rated</button>
+    </div>
+
     <div class="hotel-grid">
       <for|hotel| of=input.hotels>
-        <article class="hotel-card" data-hotel-id=hotel.id>
+        <article class="hotel-card" data-hotel-id=hotel.id data-price=hotel.price data-rating=hotel.rating>
           <div class="hotel-thumb">${hotel.tag}</div>
           <div class="hotel-body">
             <div class="card-header">

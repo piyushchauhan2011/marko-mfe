@@ -4,8 +4,9 @@
   "private": true,
   "type": "commonjs",
   "scripts": {
-    "dev": "node --watch src/server.js",
-    "build": "node --check src/server.js",
-    "start": "node src/server.js"
+    "sync-assets": "node src/sync-assets.js",
+    "dev": "node src/sync-assets.js && node --watch src/server.js",
+    "build": "node --check src/server.js && node src/sync-assets.js",
+    "start": "node src/sync-assets.js && node src/server.js"
   }
 }
