@@ -11,7 +11,33 @@ const FRAGMENTS = {
   recommendations: 'http://localhost:3105',
 };
 
+const FRAGMENT_ASSETS = {
+  navigation: {
+    css: 'http://localhost:3101/assets/navigation.css',
+    js: 'http://localhost:3101/assets/navigation.js',
+  },
+  search: {
+    css: 'http://localhost:3102/assets/search.css',
+    js: 'http://localhost:3102/assets/search.js',
+  },
+  details: {
+    css: 'http://localhost:3103/assets/details.css',
+    js: 'http://localhost:3103/assets/details.js',
+  },
+  reviews: {
+    css: 'http://localhost:3104/assets/reviews.css',
+    js: 'http://localhost:3104/assets/reviews.js',
+  },
+  recommendations: {
+    css: 'http://localhost:3105/assets/recommendations.css',
+    js: 'http://localhost:3105/assets/recommendations.js',
+  },
+};
+
 const bookings = new Map();
+const STREAM_DELAY_MS = 420;
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function renderFragment(key, hotelId = 'harbor-view') {
   const url = FRAGMENTS[key];
@@ -19,16 +45,25 @@ async function renderFragment(key, hotelId = 'harbor-view') {
     throw new Error(`Unknown fragment: ${key}`);
   }
 
-  const response = await fetch(`${url}?hotelId=${encodeURIComponent(hotelId)}&format=json`, {
-    headers: { Accept: 'application/json' },
+  const response = await fetch(`${url}?hotelId=${encodeURIComponent(hotelId)}`, {
+    headers: {
+      Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+    },
   });
 
   if (!response.ok) {
     throw new Error(`Fragment ${key} failed with status ${response.status}`);
   }
 
-  const payload = await response.json();
-  return payload.html;
+  const html = await response.text();
+  const cssUrl = response.headers.get('x-fragment-css') || '';
+  const jsUrl = response.headers.get('x-fragment-js') || '';
+
+  return {
+    html,
+    cssUrl,
+    jsUrl,
+  };
 }
 
 function createFragmentContainer(fragmentName, hotelId) {
@@ -758,10 +793,10 @@ function buildPage(hotelId, fragments) {
 
         <div class="layout">
           <main class="main-column">
-            ${createFragmentContainer('search', selectedHotel.id).replace('<!-- fragment:search -->', fragments.search)}
-            ${createFragmentContainer('details', selectedHotel.id).replace('<!-- fragment:details -->', fragments.details)}
-            ${createFragmentContainer('reviews', selectedHotel.id).replace('<!-- fragment:reviews -->', fragments.reviews)}
-            ${createFragmentContainer('recommendations', selectedHotel.id).replace('<!-- fragment:recommendations -->', fragments.recommendations)}
+            ${createFragmentContainer('search', selectedHotel.id).replace('<!-- fragment:search -->', fragments.search.html)}
+            ${createFragmentContainer('details', selectedHotel.id).replace('<!-- fragment:details -->', fragments.details.html)}
+            ${createFragmentContainer('reviews', selectedHotel.id).replace('<!-- fragment:reviews -->', fragments.reviews.html)}
+            ${createFragmentContainer('recommendations', selectedHotel.id).replace('<!-- fragment:recommendations -->', fragments.recommendations.html)}
           </main>
 
           <aside class="side-column">
@@ -875,7 +910,11 @@ async function safeRenderFragment(key, hotelId) {
   try {
     return await renderFragment(key, hotelId);
   } catch (error) {
-    return `<div class="fragment-error">${key} fragment is warming up.</div>`;
+    return {
+      html: `<div class="fragment-error">${key} fragment is warming up.</div>`,
+      cssUrl: '',
+      jsUrl: '',
+    };
   }
 }
 
@@ -890,25 +929,540 @@ async function renderPage(hotelId) {
   return buildPage(hotelId, { search, details, reviews, recommendations });
 }
 
+async function* streamPage(hotelId) {
+  const selectedHotel = getHotelById(hotelId);
+  const fragmentOrder = ['search', 'details', 'reviews', 'recommendations'];
+  const headPrefix = `<!DOCTYPE html>
+  <html lang="en">
+    <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>HarborStay Booking</title>
+      <style>
+        :root {
+          --bg: #f5efe7;
+          --bg-deep: #eef4f2;
+          --panel: rgba(255, 255, 255, 0.8);
+          --card: #fffdfb;
+          --primary: #0d6b5f;
+          --primary-strong: #0a4d44;
+          --primary-soft: #dff6ef;
+          --accent: #ff8f5a;
+          --accent-deep: #e66d3c;
+          --purple: #6156a4;
+          --text: #172328;
+          --muted: #5f696f;
+          --line: rgba(22, 44, 48, 0.09);
+          --shadow: 0 24px 60px rgba(17, 62, 58, 0.13);
+        }
+
+        * { box-sizing: border-box; }
+        html, body { margin: 0; }
+        body {
+          background:
+            radial-gradient(circle at top right, rgba(255, 143, 90, 0.18), transparent 24%),
+            radial-gradient(circle at top left, rgba(13, 107, 95, 0.14), transparent 28%),
+            linear-gradient(180deg, #f8f5f0 0%, #f1e9df 100%);
+          color: var(--text);
+          font-family: Inter, "Segoe UI", sans-serif;
+        }
+
+        .page-shell {
+          max-width: 1220px;
+          margin: 0 auto;
+          padding: 28px 18px 56px;
+        }
+
+        .topbar,
+        .panel,
+        .booking-panel {
+          background: rgba(255, 255, 255, 0.78);
+          border: 1px solid var(--line);
+          border-radius: 24px;
+          box-shadow: var(--shadow);
+          backdrop-filter: blur(10px);
+        }
+
+        .topbar {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 16px 22px;
+          margin-bottom: 24px;
+          gap: 18px;
+          background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(223, 246, 239, 0.72));
+          border-color: rgba(13, 107, 95, 0.12);
+        }
+
+        .brand {
+          font-size: clamp(1.5rem, 2vw, 1.9rem);
+          font-weight: 900;
+          letter-spacing: -0.08em;
+          color: var(--primary-strong);
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+
+        .brand::before {
+          content: "✦";
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 32px;
+          height: 32px;
+          background: linear-gradient(135deg, var(--accent), var(--accent-deep));
+          border-radius: 10px;
+          color: white;
+          font-size: 0.9rem;
+          box-shadow: 0 12px 26px rgba(230, 109, 60, 0.35);
+        }
+
+        .nav-links {
+          display: flex;
+          gap: 18px;
+          flex-wrap: wrap;
+          align-items: center;
+        }
+
+        .nav-link {
+          color: var(--muted);
+          text-decoration: none;
+          font-weight: 700;
+          transition: color 0.2s ease;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+          color: var(--primary);
+        }
+
+        .layout {
+          display: grid;
+          grid-template-columns: minmax(0, 2.5fr) minmax(260px, 0.9fr);
+          gap: 22px;
+          align-items: start;
+        }
+
+        .main-column,
+        .side-column {
+          display: flex;
+          flex-direction: column;
+          gap: 22px;
+        }
+
+        .panel {
+          padding: 30px 26px;
+        }
+
+        .booking-panel {
+          padding: 22px 20px;
+          position: sticky;
+          top: 24px;
+        }
+
+        .fragment {
+          display: block;
+          margin-bottom: 0;
+        }
+
+        .search-panel,
+        .details-panel,
+        .reviews-panel,
+        .recommendations-panel {
+          overflow: hidden;
+        }
+
+        .search-head,
+        .section-heading,
+        .card-header,
+        .card-footer,
+        .review-head,
+        .recommendation-footer,
+        .booking-price,
+        .details-grid,
+        .meta-row,
+        .summary-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 14px;
+        }
+
+        .search-bar {
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 12px;
+          background: linear-gradient(135deg, rgba(255,255,255,0.92), rgba(223,246,239,0.66));
+          border-radius: 18px;
+          margin: 20px 0 24px;
+          padding: 14px 18px;
+          border: 1px solid rgba(13, 107, 95, 0.12);
+          box-shadow: inset 0 1px 0 rgba(255,255,255,0.7);
+        }
+
+        .search-bar span {
+          color: var(--muted);
+          font-weight: 600;
+        }
+
+        .hotel-grid,
+        .recommendation-grid,
+        .reviews-list {
+          display: grid;
+          gap: 18px;
+        }
+
+        .hotel-grid { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+        .recommendation-grid { grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
+        .reviews-list { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+
+        .hotel-card,
+        .recommendation-card,
+        .review-card {
+          background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(247,243,238,0.92));
+          border: 1px solid var(--line);
+          border-radius: 18px;
+          padding: 18px;
+          transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+          position: relative;
+          overflow: hidden;
+        }
+
+        .hotel-card::before,
+        .recommendation-card::before,
+        .review-card::before {
+          content: "";
+          position: absolute;
+          inset: 0 auto auto 0;
+          width: 100%;
+          height: 3px;
+          background: linear-gradient(90deg, var(--primary), var(--accent));
+          opacity: 0;
+          transition: opacity 0.18s ease;
+        }
+
+        .hotel-card:hover,
+        .recommendation-card:hover,
+        .review-card:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 18px 38px rgba(17, 62, 58, 0.08);
+        }
+
+        .hotel-card:hover::before,
+        .recommendation-card:hover::before,
+        .review-card:hover::before {
+          opacity: 1;
+        }
+
+        .hotel-card.selected,
+        .recommendation-card.selected {
+          border-color: rgba(13, 107, 95, 0.5);
+          box-shadow: 0 18px 32px rgba(13, 107, 95, 0.09);
+        }
+
+        .hotel-thumb {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          min-height: 110px;
+          border-radius: 16px;
+          background: linear-gradient(135deg, #dfe9e6, #c9d9d5);
+          font-weight: 700;
+          color: var(--primary-strong);
+          margin-bottom: 14px;
+        }
+
+        .hotel-body,
+        .recommendation-card,
+        .review-card {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+
+        .location, .description, .text-muted {
+          color: var(--muted);
+        }
+
+        .description {
+          margin-top: 10px;
+          line-height: 1.6;
+        }
+
+        .meta-row {
+          justify-content: flex-start;
+          margin-bottom: 16px;
+        }
+
+        .pill {
+          border-radius: 999px;
+          background: rgba(21, 91, 71, 0.08);
+          color: var(--primary);
+          padding: 8px 12px;
+          font-size: 0.8rem;
+          font-weight: 700;
+        }
+
+        .details-grid {
+          align-items: end;
+          margin-bottom: 18px;
+        }
+
+        .feature-list {
+          list-style: none;
+          padding: 0;
+          margin: 0;
+          display: flex;
+          flex-wrap: wrap;
+          gap: 10px;
+        }
+
+        .feature-list li {
+          padding: 8px 12px;
+          background: rgba(97, 86, 164, 0.08);
+          border-radius: 999px;
+          color: var(--purple);
+          font-weight: 600;
+        }
+
+        .booking-card {
+          min-width: 220px;
+          background: var(--card);
+          border: 1px solid var(--line);
+          border-radius: 18px;
+          padding: 18px;
+        }
+
+        .booking-price strong {
+          font-size: 2rem;
+        }
+
+        .review-card {
+          min-height: 150px;
+        }
+
+        .review-head {
+          margin-bottom: 10px;
+        }
+
+        .primary-button,
+        .ghost-button,
+        .select-room {
+          appearance: none;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 999px;
+          border: none;
+          font-family: inherit;
+          font-weight: 700;
+          cursor: pointer;
+          transition: transform 0.18s ease, opacity 0.18s ease, box-shadow 0.18s ease;
+          text-decoration: none;
+        }
+
+        .primary-button {
+          background: linear-gradient(135deg, var(--primary) 0%, var(--primary-strong) 100%);
+          color: white;
+          padding: 14px 20px;
+          box-shadow: 0 12px 20px rgba(21, 91, 71, 0.18);
+        }
+
+        .ghost-button,
+        .select-room {
+          background: transparent;
+          border: 1px solid var(--line);
+          padding: 10px 18px;
+          color: var(--text);
+        }
+
+        .primary-button:hover,
+        .ghost-button:hover,
+        .select-room:hover {
+          transform: translateY(-1px);
+        }
+
+        .booking-panel h3,
+        .details-panel h2,
+        .search-panel h2,
+        .reviews-panel h2,
+        .recommendations-panel h2,
+        .hotel-card h3,
+        .recommendation-card h3,
+        .review-card strong {
+          margin: 0;
+        }
+
+        .booking-summary {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+          margin-top: 18px;
+        }
+
+        .summary-row {
+          justify-content: space-between;
+        }
+
+        .summary-row strong {
+          font-size: 1.1rem;
+        }
+
+        .loading-fragment {
+          min-height: 160px;
+          border-radius: 18px;
+          border: 1px solid var(--line);
+          background: rgba(255,255,255,0.5);
+          position: relative;
+          overflow: hidden;
+        }
+
+        .loading-fragment::before {
+          content: "";
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(90deg, rgba(13, 107, 95, 0.09), rgba(255, 143, 90, 0.09), rgba(13, 107, 95, 0.09));
+          background-size: 200% 100%;
+          animation: pulse 1.4s linear infinite;
+        }
+
+        @keyframes pulse {
+          0% { background-position: 200% 0; }
+          100% { background-position: -200% 0; }
+        }
+
+        .fragment-error {
+          color: #9b1c1c;
+          font-weight: 600;
+          padding: 18px;
+        }
+
+        @media (max-width: 900px) {
+          .layout {
+            grid-template-columns: 1fr;
+          }
+
+          .booking-panel {
+            position: static;
+          }
+        }
+
+        @media (max-width: 640px) {
+          .page-shell {
+            padding: 16px 12px 36px;
+          }
+
+          .topbar {
+            flex-direction: column;
+            align-items: flex-start;
+          }
+
+          .nav-links {
+            width: 100%;
+            justify-content: space-between;
+            gap: 10px;
+          }
+
+          .panel {
+            padding: 20px 18px;
+          }
+        }
+      </style>
+    </head>
+    <body data-hotel-id="${selectedHotel.id}">
+      <div class="page-shell">
+        <header class="topbar">
+          <div class="brand">HarborStay</div>
+          <nav aria-label="Main navigation" class="nav-links">
+            <a class="nav-link active" href="/hotel/${selectedHotel.id}">Stays</a>
+            <a class="nav-link" href="#">Experiences</a>
+            <a class="nav-link" href="#">Flights</a>
+            <a class="nav-link" href="#">Support</a>
+          </nav>
+        </header>
+        <div class="layout">
+          <main class="main-column">
+`;
+
+  yield headPrefix;
+
+  for (const name of fragmentOrder) {
+    const fragment = await safeRenderFragment(name, hotelId);
+    const cssTag = fragment.cssUrl ? `<link rel="stylesheet" href="${fragment.cssUrl}" />` : '';
+    const jsTag = fragment.jsUrl ? `<script defer src="${fragment.jsUrl}"></script>` : '';
+    yield `${cssTag}${jsTag}${createFragmentContainer(name, selectedHotel.id).replace(`<!-- fragment:${name} -->`, fragment.html)}`;
+    await sleep(STREAM_DELAY_MS);
+  }
+
+  yield `
+          </main>
+          <aside class="side-column">
+            <div class="booking-panel" aria-live="polite">
+              <p class="eyebrow">Trip summary</p>
+              <h3>${selectedHotel.name}</h3>
+              <p class="location">${selectedHotel.location}</p>
+              <div class="booking-summary">
+                <div class="summary-row">
+                  <span>Rate</span>
+                  <strong>$${selectedHotel.price}</strong>
+                </div>
+                <div class="summary-row">
+                  <span>Status</span>
+                  <span>Ready to book</span>
+                </div>
+                <form method="POST" action="/booking/confirm/${selectedHotel.id}">
+                  <button class="primary-button" type="submit" data-book-hotel="${selectedHotel.id}" data-book-price="${selectedHotel.price}">Book this stay</button>
+                </form>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </div>
+
+      <script>
+        document.addEventListener('DOMContentLoaded', () => {
+          document.querySelectorAll('[data-hotel-id]').forEach((element) => {
+            if (element === document.body) return;
+            element.addEventListener('click', (event) => {
+              const target = event.target.closest('[data-hotel-id]');
+              if (!target || !target.dataset.hotelId) return;
+              const selectedId = target.dataset.hotelId;
+              if (selectedId === document.body.dataset.hotelId) return;
+              window.location.assign('/hotel/' + selectedId);
+            });
+          });
+
+          document.querySelectorAll('[data-book-hotel]').forEach((button) => {
+            button.addEventListener('click', (event) => {
+              event.preventDefault();
+              const hotelId = button.dataset.bookHotel || document.body.dataset.hotelId;
+              window.location.assign('/booking/confirm/' + encodeURIComponent(hotelId));
+            });
+          });
+        });
+      </script>
+    </body>
+  </html>`;
+}
+
 const app = Fastify({ logger: false });
 
 app.get('/', async (request, reply) => {
   const hotel = getHotelById('harbor-view');
-  const html = await renderPage(hotel.id);
   reply.type('text/html; charset=utf-8');
   reply.header('x-ssr-stream', 'true');
   reply.header('x-fragment-protocol', 'harborstay-fragment/v1');
-  return Readable.from([html]);
+  return Readable.from(streamPage(hotel.id));
 });
 
 app.get('/hotel/:hotelId', async (request, reply) => {
   const hotelId = request.params.hotelId || 'harbor-view';
   const hotel = getHotelById(hotelId);
-  const html = await renderPage(hotel.id);
   reply.type('text/html; charset=utf-8');
   reply.header('x-ssr-stream', 'true');
   reply.header('x-fragment-protocol', 'harborstay-fragment/v1');
-  return Readable.from([html]);
+  return Readable.from(streamPage(hotel.id));
 });
 
 app.get('/booking/confirm/:hotelId', async (request, reply) => {
@@ -938,7 +1492,7 @@ app.get('/fragment/:name', async (request, reply) => {
   }
 
   try {
-    const html = await renderFragment(name, hotelId);
+    const fragment = await renderFragment(name, hotelId);
     if (request.query.format === 'json' || (request.headers.accept || '').includes('application/json')) {
       reply.type('application/json; charset=utf-8');
       return {
@@ -947,7 +1501,9 @@ app.get('/fragment/:name', async (request, reply) => {
         hotelId,
         protocolVersion: 'harborstay-fragment/v1',
         generatedAt: new Date().toISOString(),
-        html,
+        html: fragment.html,
+        css: fragment.css ? [fragment.css] : [],
+        js: fragment.js ? [fragment.js] : [],
       };
     }
 
@@ -955,7 +1511,11 @@ app.get('/fragment/:name', async (request, reply) => {
     reply.header('x-fragment-name', name);
     reply.header('x-fragment-hotel-id', hotelId);
     reply.header('x-fragment-protocol', 'harborstay-fragment/v1');
-    return html;
+    if (FRAGMENT_ASSETS[name]) {
+      reply.header('x-fragment-css', FRAGMENT_ASSETS[name].css);
+      reply.header('x-fragment-js', FRAGMENT_ASSETS[name].js);
+    }
+    return fragment.html;
   } catch (error) {
     reply.code(503);
     return { error: error.message };
