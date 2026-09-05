@@ -14,6 +14,14 @@ const detailsCss = `
   .primary-button { background:#0d6b5f; color:white; border-radius:999px; padding:14px 20px; border:none; }
 `;
 const detailsJs = `window.__harborstayDetails = true;`;
+const fragmentManifest = {
+ name: 'details',
+ version: 'harborstay-fragment/v1',
+ assets: {
+   css: ['/assets/details.css'],
+   js: ['/assets/details.js'],
+ },
+};
 
 function renderHtml(input) {
   return template.render(input).toString();
@@ -22,6 +30,15 @@ function renderHtml(input) {
 http
   .createServer(async (req, res) => {
     const requestUrl = new URL(req.url, 'http://localhost');
+
+    if (requestUrl.pathname === '/manifest') {
+      res.writeHead(200, {
+        'Content-Type': 'application/json; charset=utf-8',
+        'Cache-Control': 'no-cache',
+      });
+      res.end(JSON.stringify(fragmentManifest));
+      return;
+    }
 
     if (requestUrl.pathname === '/assets/details.css') {
       res.writeHead(200, {

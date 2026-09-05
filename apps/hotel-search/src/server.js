@@ -20,6 +20,14 @@ const searchCss = `
   .ghost-button { background:transparent; border:1px solid rgba(23,35,40,.08); color:#172328; }
 `;
 const searchJs = `window.__harborstaySearch = true;`;
+const fragmentManifest = {
+ name: 'search',
+ version: 'harborstay-fragment/v1',
+ assets: {
+   css: ['/assets/search.css'],
+   js: ['/assets/search.js'],
+ },
+};
 
 function renderHtml(input) {
   return template.render(input).toString();
@@ -28,6 +36,15 @@ function renderHtml(input) {
 http
   .createServer(async (req, res) => {
     const requestUrl = new URL(req.url, 'http://localhost');
+
+    if (requestUrl.pathname === '/manifest') {
+      res.writeHead(200, {
+        'Content-Type': 'application/json; charset=utf-8',
+        'Cache-Control': 'no-cache',
+      });
+      res.end(JSON.stringify(fragmentManifest));
+      return;
+    }
 
     if (requestUrl.pathname === '/assets/search.css') {
       res.writeHead(200, {

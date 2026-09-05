@@ -10,6 +10,14 @@ const recommendationsCss = `
   .recommendation-card { background:#fffdfb; border:1px solid rgba(23,35,40,.08); border-radius:18px; padding:18px; }
 `;
 const recommendationsJs = `window.__harborstayRecommendations = true;`;
+const fragmentManifest = {
+ name: 'recommendations',
+ version: 'harborstay-fragment/v1',
+ assets: {
+   css: ['/assets/recommendations.css'],
+   js: ['/assets/recommendations.js'],
+ },
+};
 
 function renderHtml(input) {
   return template.render(input).toString();
@@ -18,6 +26,15 @@ function renderHtml(input) {
 http
   .createServer(async (req, res) => {
     const requestUrl = new URL(req.url, 'http://localhost');
+
+    if (requestUrl.pathname === '/manifest') {
+      res.writeHead(200, {
+        'Content-Type': 'application/json; charset=utf-8',
+        'Cache-Control': 'no-cache',
+      });
+      res.end(JSON.stringify(fragmentManifest));
+      return;
+    }
 
     if (requestUrl.pathname === '/assets/recommendations.css') {
       res.writeHead(200, {

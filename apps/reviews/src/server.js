@@ -11,6 +11,14 @@ const reviewsCss = `
   .review-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
 `;
 const reviewsJs = `window.__harborstayReviews = true;`;
+const fragmentManifest = {
+ name: 'reviews',
+ version: 'harborstay-fragment/v1',
+ assets: {
+   css: ['/assets/reviews.css'],
+   js: ['/assets/reviews.js'],
+ },
+};
 
 function renderHtml(input) {
   return template.render(input).toString();
@@ -19,6 +27,15 @@ function renderHtml(input) {
 http
   .createServer(async (req, res) => {
     const requestUrl = new URL(req.url, 'http://localhost');
+
+    if (requestUrl.pathname === '/manifest') {
+      res.writeHead(200, {
+        'Content-Type': 'application/json; charset=utf-8',
+        'Cache-Control': 'no-cache',
+      });
+      res.end(JSON.stringify(fragmentManifest));
+      return;
+    }
 
     if (requestUrl.pathname === '/assets/reviews.css') {
       res.writeHead(200, {

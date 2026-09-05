@@ -11,15 +11,28 @@ const FRAGMENTS = {
   recommendations: 'http://localhost:3105',
 };
 
-const FRAGMENT_ASSETS = Object.fromEntries(
-  Object.entries(FRAGMENTS).map(([name, baseUrl]) => [
-    name,
-    {
-      css: `http://localhost:${PORT}/assets/${name}.css`,
-      js: `http://localhost:${PORT}/assets/${name}.js`,
-    },
-  ])
-);
+const FRAGMENT_ASSETS = {
+  navigation: {
+    css: `http://localhost:${PORT}/assets/navigation.css`,
+    js: `http://localhost:${PORT}/assets/navigation.js`,
+  },
+  search: {
+    css: `http://localhost:${PORT}/assets/search.css`,
+    js: `http://localhost:${PORT}/assets/search.js`,
+  },
+  details: {
+    css: `http://localhost:${PORT}/assets/details.css`,
+    js: `http://localhost:${PORT}/assets/details.js`,
+  },
+  reviews: {
+    css: `http://localhost:${PORT}/assets/reviews.css`,
+    js: `http://localhost:${PORT}/assets/reviews.js`,
+  },
+  recommendations: {
+    css: `http://localhost:${PORT}/assets/recommendations.css`,
+    js: `http://localhost:${PORT}/assets/recommendations.js`,
+  },
+};
 
 const bookings = new Map();
 const STREAM_DELAY_MS = 420;
@@ -31,6 +44,43 @@ const FRAGMENT_STREAM_DELAY_MS = {
 };
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+function toAbsoluteAssetUrls(assetPaths = []) {
+  return assetPaths
+    .map((value) => {
+      if (!value) return '';
+      if (value.startsWith('http://') || value.startsWith('https://')) return value;
+      if (value.startsWith('/')) return `http://localhost:${PORT}${value}`;
+      return `http://localhost:${PORT}/${value.replace(/^\//, '')}`;
+    })
+    .filter(Boolean);
+}
+
+async function getFragmentManifest(key) {
+  const url = FRAGMENTS[key];
+  if (!url) {
+    throw new Error(`Unknown fragment: ${key}`);
+  }
+
+  const response = await fetch(`${url}/manifest`, {
+    headers: {
+      Accept: 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    return { css: [], js: [] };
+  }
+
+  const manifest = await response.json();
+  const css = Array.isArray(manifest?.assets?.css) ? manifest.assets.css : Array.isArray(manifest?.css) ? manifest.css : [];
+  const js = Array.isArray(manifest?.assets?.js) ? manifest.assets.js : Array.isArray(manifest?.js) ? manifest.js : [];
+
+  return {
+    css: toAbsoluteAssetUrls(css),
+    js: toAbsoluteAssetUrls(js),
+  };
+}
 
 async function renderFragment(key, hotelId = 'harbor-view') {
   const url = FRAGMENTS[key];
@@ -49,13 +99,16 @@ async function renderFragment(key, hotelId = 'harbor-view') {
   }
 
   const html = await response.text();
-  const cssUrl = FRAGMENT_ASSETS[key]?.css || response.headers.get('x-fragment-css') || '';
-  const jsUrl = FRAGMENT_ASSETS[key]?.js || response.headers.get('x-fragment-js') || '';
+  const manifest = await getFragmentManifest(key);
+  const cssUrls = manifest.css.length > 0 ? manifest.css : [response.headers.get('x-fragment-css')].filter(Boolean);
+  const jsUrls = manifest.js.length > 0 ? manifest.js : [response.headers.get('x-fragment-js')].filter(Boolean);
 
   return {
     html,
-    cssUrl,
-    jsUrl,
+    cssUrls,
+    jsUrls,
+    cssUrl: cssUrls[0] || '',
+    jsUrl: jsUrls[0] || '',
   };
 }
 
@@ -1395,9 +1448,9 @@ async function* streamPage(hotelId) {
     );
 
     pending.delete(next.name);
-    const cssTag = next.fragment.cssUrl ? `<link rel="stylesheet" href="${next.fragment.cssUrl}" />` : '';
-    const jsTag = next.fragment.jsUrl ? `<script defer src="${next.fragment.jsUrl}"></script>` : '';
-    yield `${cssTag}${jsTag}${createFragmentContainer(next.name, selectedHotel.id).replace(`<!-- fragment:${next.name} -->`, next.fragment.html)}`;
+    const cssTags = (next.fragment.cssUrls || []).map((url) => `<link rel="stylesheet" href="${url}" />`).join('');
+    const jsTags = (next.fragment.jsUrls || []).map((url) => `<script defer src="${url}"></script>`).join('');
+    yield `${cssTags}${jsTags}${createFragmentContainer(next.name, selectedHotel.id).replace(`<!-- fragment:${next.name} -->`, next.fragment.html)}`;
     await sleep(STREAM_DELAY_MS);
   }
 
@@ -1527,37 +1580,39 @@ app.get('/fragment/:name', async (request, reply) => {
 
   if (!FRAGMENTS[name]) {
     reply.code(404);
-    return { error: `Unknown fragment: ${name}` };
+    return reply.send({ error: `Unknown fragment: ${name}` });
   }
 
   try {
     const fragment = await renderFragment(name, hotelId);
+    const assetSet = await getFragmentManifest(name);
+    const cssUrls = assetSet.css.length > 0 ? assetSet.css : fragment.cssUrls || [];
+    const jsUrls = assetSet.js.length > 0 ? assetSet.js : fragment.jsUrls || [];
+
     if (request.query.format === 'json' || (request.headers.accept || '').includes('application/json')) {
       reply.type('application/json; charset=utf-8');
-      return {
+      return reply.send({
         ok: true,
         name,
         hotelId,
         protocolVersion: 'harborstay-fragment/v1',
         generatedAt: new Date().toISOString(),
         html: fragment.html,
-        css: fragment.css ? [fragment.css] : [],
-        js: fragment.js ? [fragment.js] : [],
-      };
+        css: cssUrls,
+        js: jsUrls,
+      });
     }
 
     reply.type('text/html; charset=utf-8');
     reply.header('x-fragment-name', name);
     reply.header('x-fragment-hotel-id', hotelId);
     reply.header('x-fragment-protocol', 'harborstay-fragment/v1');
-    if (FRAGMENT_ASSETS[name]) {
-      reply.header('x-fragment-css', FRAGMENT_ASSETS[name].css);
-      reply.header('x-fragment-js', FRAGMENT_ASSETS[name].js);
-    }
-    return fragment.html;
+    reply.header('x-fragment-css', cssUrls[0] || '');
+    reply.header('x-fragment-js', jsUrls[0] || '');
+    return reply.send(fragment.html);
   } catch (error) {
     reply.code(503);
-    return { error: error.message };
+    return reply.send({ error: error.message });
   }
 });
 

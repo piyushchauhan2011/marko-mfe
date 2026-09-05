@@ -12,6 +12,14 @@ const navigationCss = `
   .nav-link.active { color:#0d6b5f; }
 `;
 const navigationJs = `window.__harborstayNav = true;`;
+const fragmentManifest = {
+ name: 'navigation',
+ version: 'harborstay-fragment/v1',
+ assets: {
+   css: ['/assets/navigation.css'],
+   js: ['/assets/navigation.js'],
+ },
+};
 
 function renderHtml(input) {
   return template.render(input).toString();
@@ -20,6 +28,15 @@ function renderHtml(input) {
 http
   .createServer(async (req, res) => {
     const requestUrl = new URL(req.url, 'http://localhost');
+
+    if (requestUrl.pathname === '/manifest') {
+      res.writeHead(200, {
+        'Content-Type': 'application/json; charset=utf-8',
+        'Cache-Control': 'no-cache',
+      });
+      res.end(JSON.stringify(fragmentManifest));
+      return;
+    }
 
     if (requestUrl.pathname === '/assets/navigation.css') {
       res.writeHead(200, {
