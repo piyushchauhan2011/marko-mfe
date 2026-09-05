@@ -4,6 +4,7 @@ const { getHotelById } = require('@marko-mfe/mock-data');
 const template = require('./hotel-details.marko').default;
 
 const port = Number(process.env.PORT || 3103);
+const CDN_BASE_URL = process.env.CDN_BASE_URL || 'http://localhost:3200';
 const detailsCss = `
   .details-panel { display:block; }
   .details-panel .location { color:#5f696f; }
@@ -18,10 +19,14 @@ const fragmentManifest = {
  name: 'details',
  version: 'harborstay-fragment/v1',
  assets: {
-   css: ['/assets/details.css'],
-   js: ['/assets/details.js'],
+   css: [`${CDN_BASE_URL}/assets/details.css`],
+   js: [`${CDN_BASE_URL}/assets/details.js`],
  },
 };
+const assetTags = `
+ <link rel="stylesheet" href="${fragmentManifest.assets.css[0]}" />
+ <script defer src="${fragmentManifest.assets.js[0]}"></script>
+`;
 
 function renderHtml(input) {
   return template.render(input).toString();
@@ -69,8 +74,8 @@ http
       'X-Fragment-Name': 'details',
       'X-Fragment-Hotel-Id': hotelId,
       'X-Fragment-Protocol': 'harborstay-fragment/v1',
-      'X-Fragment-Css': `http://localhost:${port}/assets/details.css`,
-      'X-Fragment-Js': `http://localhost:${port}/assets/details.js`,
+      'X-Fragment-Css': fragmentManifest.assets.css[0],
+      'X-Fragment-Js': fragmentManifest.assets.js[0],
     });
 
     if (isJson) {
@@ -87,7 +92,7 @@ http
       return;
     }
 
-    res.end(html);
+    res.end(`${assetTags}${html}`);
   })
   .listen(port, () => {
     console.log(`Hotel details MFE running on http://localhost:${port}`);

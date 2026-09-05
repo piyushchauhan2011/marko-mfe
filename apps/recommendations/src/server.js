@@ -4,6 +4,7 @@ const { getRecommendationsForHotel } = require('@marko-mfe/mock-data');
 const template = require('./recommendations.marko').default;
 
 const port = Number(process.env.PORT || 3105);
+const CDN_BASE_URL = process.env.CDN_BASE_URL || 'http://localhost:3200';
 const recommendationsCss = `
   .recommendations-panel { display:block; }
   .recommendation-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(190px, 1fr)); gap:18px; }
@@ -14,10 +15,14 @@ const fragmentManifest = {
  name: 'recommendations',
  version: 'harborstay-fragment/v1',
  assets: {
-   css: ['/assets/recommendations.css'],
-   js: ['/assets/recommendations.js'],
+   css: [`${CDN_BASE_URL}/assets/recommendations.css`],
+   js: [`${CDN_BASE_URL}/assets/recommendations.js`],
  },
 };
+const assetTags = `
+ <link rel="stylesheet" href="${fragmentManifest.assets.css[0]}" />
+ <script defer src="${fragmentManifest.assets.js[0]}"></script>
+`;
 
 function renderHtml(input) {
   return template.render(input).toString();
@@ -65,8 +70,8 @@ http
       'X-Fragment-Name': 'recommendations',
       'X-Fragment-Hotel-Id': hotelId,
       'X-Fragment-Protocol': 'harborstay-fragment/v1',
-      'X-Fragment-Css': `http://localhost:${port}/assets/recommendations.css`,
-      'X-Fragment-Js': `http://localhost:${port}/assets/recommendations.js`,
+      'X-Fragment-Css': fragmentManifest.assets.css[0],
+      'X-Fragment-Js': fragmentManifest.assets.js[0],
     });
 
     if (isJson) {
@@ -83,7 +88,7 @@ http
       return;
     }
 
-    res.end(html);
+    res.end(`${assetTags}${html}`);
   })
   .listen(port, () => {
     console.log(`Recommendations MFE running on http://localhost:${port}`);

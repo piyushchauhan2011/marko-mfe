@@ -4,6 +4,7 @@ const { getFeaturedHotels } = require('@marko-mfe/mock-data');
 const template = require('./hotel-search.marko').default;
 
 const port = Number(process.env.PORT || 3102);
+const CDN_BASE_URL = process.env.CDN_BASE_URL || 'http://localhost:3200';
 const searchCss = `
   .search-panel { display:block; }
   .search-head { display:flex; justify-content:space-between; align-items:center; }
@@ -24,10 +25,14 @@ const fragmentManifest = {
  name: 'search',
  version: 'harborstay-fragment/v1',
  assets: {
-   css: ['/assets/search.css'],
-   js: ['/assets/search.js'],
+   css: [`${CDN_BASE_URL}/assets/search.css`],
+   js: [`${CDN_BASE_URL}/assets/search.js`],
  },
 };
+const assetTags = `
+ <link rel="stylesheet" href="${fragmentManifest.assets.css[0]}" />
+ <script defer src="${fragmentManifest.assets.js[0]}"></script>
+`;
 
 function renderHtml(input) {
   return template.render(input).toString();
@@ -75,8 +80,8 @@ http
       'X-Fragment-Name': 'search',
       'X-Fragment-Hotel-Id': hotelId,
       'X-Fragment-Protocol': 'harborstay-fragment/v1',
-      'X-Fragment-Css': `http://localhost:${port}/assets/search.css`,
-      'X-Fragment-Js': `http://localhost:${port}/assets/search.js`,
+      'X-Fragment-Css': fragmentManifest.assets.css[0],
+      'X-Fragment-Js': fragmentManifest.assets.js[0],
     });
 
     if (isJson) {
@@ -93,7 +98,7 @@ http
       return;
     }
 
-    res.end(html);
+    res.end(`${assetTags}${html}`);
   })
   .listen(port, () => {
     console.log(`Hotel search MFE running on http://localhost:${port}`);

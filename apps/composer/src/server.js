@@ -3,6 +3,7 @@ const { Readable } = require('node:stream');
 const { getHotelById } = require('@marko-mfe/mock-data');
 
 const PORT = Number(process.env.PORT || 3100);
+const CDN_BASE_URL = process.env.CDN_BASE_URL || 'http://localhost:3200';
 const FRAGMENTS = {
   navigation: 'http://localhost:3101',
   search: 'http://localhost:3102',
@@ -22,43 +23,6 @@ const FRAGMENT_STREAM_DELAY_MS = {
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-function toAbsoluteAssetUrls(assetPaths = []) {
-  return assetPaths
-    .map((value) => {
-      if (!value) return '';
-      if (value.startsWith('http://') || value.startsWith('https://')) return value;
-      if (value.startsWith('/')) return `http://localhost:${PORT}${value}`;
-      return `http://localhost:${PORT}/${value.replace(/^\//, '')}`;
-    })
-    .filter(Boolean);
-}
-
-async function getFragmentManifest(key) {
-  const url = FRAGMENTS[key];
-  if (!url) {
-    throw new Error(`Unknown fragment: ${key}`);
-  }
-
-  const response = await fetch(`${url}/manifest`, {
-    headers: {
-      Accept: 'application/json',
-    },
-  });
-
-  if (!response.ok) {
-    return { css: [], js: [] };
-  }
-
-  const manifest = await response.json();
-  const css = Array.isArray(manifest?.assets?.css) ? manifest.assets.css : Array.isArray(manifest?.css) ? manifest.css : [];
-  const js = Array.isArray(manifest?.assets?.js) ? manifest.assets.js : Array.isArray(manifest?.js) ? manifest.js : [];
-
-  return {
-    css: toAbsoluteAssetUrls(css),
-    js: toAbsoluteAssetUrls(js),
-  };
-}
-
 async function renderFragment(key, hotelId = 'harbor-view') {
   const url = FRAGMENTS[key];
   if (!url) {
@@ -76,16 +40,13 @@ async function renderFragment(key, hotelId = 'harbor-view') {
   }
 
   const html = await response.text();
-  const manifest = await getFragmentManifest(key);
-  const cssUrls = manifest.css.length > 0 ? manifest.css : [response.headers.get('x-fragment-css')].filter(Boolean);
-  const jsUrls = manifest.js.length > 0 ? manifest.js : [response.headers.get('x-fragment-js')].filter(Boolean);
 
   return {
     html,
-    cssUrls,
-    jsUrls,
-    cssUrl: cssUrls[0] || '',
-    jsUrl: jsUrls[0] || '',
+    cssUrls: [],
+    jsUrls: [],
+    cssUrl: '',
+    jsUrl: '',
   };
 }
 
@@ -1425,9 +1386,7 @@ async function* streamPage(hotelId) {
     );
 
     pending.delete(next.name);
-    const cssTags = (next.fragment.cssUrls || []).map((url) => `<link rel="stylesheet" href="${url}" />`).join('');
-    const jsTags = (next.fragment.jsUrls || []).map((url) => `<script defer src="${url}"></script>`).join('');
-    yield `${cssTags}${jsTags}${createFragmentContainer(next.name, selectedHotel.id).replace(`<!-- fragment:${next.name} -->`, next.fragment.html)}`;
+    yield next.fragment.html;
     await sleep(STREAM_DELAY_MS);
   }
 
@@ -1562,9 +1521,6 @@ app.get('/fragment/:name', async (request, reply) => {
 
   try {
     const fragment = await renderFragment(name, hotelId);
-    const assetSet = await getFragmentManifest(name);
-    const cssUrls = assetSet.css.length > 0 ? assetSet.css : fragment.cssUrls || [];
-    const jsUrls = assetSet.js.length > 0 ? assetSet.js : fragment.jsUrls || [];
 
     if (request.query.format === 'json' || (request.headers.accept || '').includes('application/json')) {
       reply.type('application/json; charset=utf-8');
@@ -1575,8 +1531,8 @@ app.get('/fragment/:name', async (request, reply) => {
         protocolVersion: 'harborstay-fragment/v1',
         generatedAt: new Date().toISOString(),
         html: fragment.html,
-        css: cssUrls,
-        js: jsUrls,
+        css: [],
+        js: [],
       });
     }
 
@@ -1584,8 +1540,6 @@ app.get('/fragment/:name', async (request, reply) => {
     reply.header('x-fragment-name', name);
     reply.header('x-fragment-hotel-id', hotelId);
     reply.header('x-fragment-protocol', 'harborstay-fragment/v1');
-    reply.header('x-fragment-css', cssUrls[0] || '');
-    reply.header('x-fragment-js', jsUrls[0] || '');
     return reply.send(fragment.html);
   } catch (error) {
     reply.code(503);

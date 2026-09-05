@@ -3,6 +3,7 @@ require('@marko/compiler/register');
 const template = require('./navigation.marko').default;
 
 const port = Number(process.env.PORT || 3101);
+const CDN_BASE_URL = process.env.CDN_BASE_URL || 'http://localhost:3200';
 const navigationCss = `
   .navigation-fragment { display:block; }
   .topbar { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:18px 22px; background:linear-gradient(135deg, rgba(255,255,255,0.9), rgba(223,246,239,0.75)); border:1px solid rgba(13,107,95,.1); border-radius:24px; box-shadow:0 14px 30px rgba(17,62,58,.08); }
@@ -16,10 +17,14 @@ const fragmentManifest = {
  name: 'navigation',
  version: 'harborstay-fragment/v1',
  assets: {
-   css: ['/assets/navigation.css'],
-   js: ['/assets/navigation.js'],
+   css: [`${CDN_BASE_URL}/assets/navigation.css`],
+   js: [`${CDN_BASE_URL}/assets/navigation.js`],
  },
 };
+const assetTags = `
+ <link rel="stylesheet" href="${fragmentManifest.assets.css[0]}" />
+ <script defer src="${fragmentManifest.assets.js[0]}"></script>
+`;
 
 function renderHtml(input) {
   return template.render(input).toString();
@@ -66,8 +71,8 @@ http
       'X-Fragment-Name': 'navigation',
       'X-Fragment-Hotel-Id': hotelId,
       'X-Fragment-Protocol': 'harborstay-fragment/v1',
-      'X-Fragment-Css': `http://localhost:${port}/assets/navigation.css`,
-      'X-Fragment-Js': `http://localhost:${port}/assets/navigation.js`,
+      'X-Fragment-Css': fragmentManifest.assets.css[0],
+      'X-Fragment-Js': fragmentManifest.assets.js[0],
     });
 
     if (isJson) {
@@ -84,7 +89,7 @@ http
       return;
     }
 
-    res.end(html);
+    res.end(`${assetTags}${html}`);
   })
   .listen(port, () => {
     console.log(`Navigation MFE running on http://localhost:${port}`);
