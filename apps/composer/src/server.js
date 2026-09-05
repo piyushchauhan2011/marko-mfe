@@ -11,29 +11,6 @@ const FRAGMENTS = {
   recommendations: 'http://localhost:3105',
 };
 
-const FRAGMENT_ASSETS = {
-  navigation: {
-    css: `http://localhost:${PORT}/assets/navigation.css`,
-    js: `http://localhost:${PORT}/assets/navigation.js`,
-  },
-  search: {
-    css: `http://localhost:${PORT}/assets/search.css`,
-    js: `http://localhost:${PORT}/assets/search.js`,
-  },
-  details: {
-    css: `http://localhost:${PORT}/assets/details.css`,
-    js: `http://localhost:${PORT}/assets/details.js`,
-  },
-  reviews: {
-    css: `http://localhost:${PORT}/assets/reviews.css`,
-    js: `http://localhost:${PORT}/assets/reviews.js`,
-  },
-  recommendations: {
-    css: `http://localhost:${PORT}/assets/recommendations.css`,
-    js: `http://localhost:${PORT}/assets/recommendations.js`,
-  },
-};
-
 const bookings = new Map();
 const STREAM_DELAY_MS = 420;
 const FRAGMENT_STREAM_DELAY_MS = {
