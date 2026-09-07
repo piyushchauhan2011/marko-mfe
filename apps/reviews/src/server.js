@@ -1,17 +1,15 @@
 const http = require('node:http');
+const fs = require('node:fs');
+const path = require('node:path');
 require('@marko/compiler/register');
 const { getReviewsByHotel } = require('@marko-mfe/mock-data');
 const template = require('./reviews.marko').default;
 
 const port = Number(process.env.PORT || 3104);
 const CDN_BASE_URL = process.env.CDN_BASE_URL || 'http://localhost:3200';
-const reviewsCss = `
-  .reviews-panel { display:block; }
-  .reviews-list { display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:18px; }
-  .review-card { background:#fffdfb; border:1px solid rgba(23,35,40,.08); border-radius:18px; padding:18px; }
-  .review-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
-`;
-const reviewsJs = `window.__harborstayReviews = true;`;
+const assetDir = path.join(__dirname, 'assets');
+const reviewsCss = fs.readFileSync(path.join(assetDir, 'reviews.css'), 'utf8');
+const reviewsJs = fs.readFileSync(path.join(assetDir, 'reviews.js'), 'utf8');
 const fragmentManifest = {
  name: 'reviews',
  version: 'harborstay-fragment/v1',

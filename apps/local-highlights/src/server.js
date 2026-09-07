@@ -1,4 +1,6 @@
 const http = require('node:http');
+const fs = require('node:fs');
+const path = require('node:path');
 const React = require('react');
 const { renderToStaticMarkup } = require('react-dom/server');
 
@@ -9,19 +11,9 @@ const { HighlightsView } = require('./HighlightsView.jsx');
 
 const PORT = Number(process.env.PORT || 3106);
 const CDN_BASE_URL = process.env.CDN_BASE_URL || 'http://localhost:3200';
-
-const localHighlightsCss = `
-  .highlights-panel { display: block; }
-  .highlights-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
-  .highlights-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; }
-  .highlight-card { background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(247,243,238,0.92)); border: 1px solid rgba(22,44,48,0.09); border-radius: 18px; padding: 18px; cursor: pointer; transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease; }
-  .highlight-card:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(17, 62, 58, 0.08); }
-  .highlight-card.is-selected { border-color: rgba(13, 107, 95, 0.5); box-shadow: 0 18px 32px rgba(13, 107, 95, 0.09); }
-  .highlight-card .eyebrow { text-transform: uppercase; letter-spacing: .08em; color: #5f696f; font-size: 0.72rem; font-weight: 700; }
-  .highlight-card h3 { margin: 8px 0 10px; font-size: 1.1rem; }
-  .highlight-card p { margin: 0; color: #5f696f; line-height: 1.5; }
-  .highlight-card .meta { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; font-size: 0.8rem; font-weight: 700; color: #0d6b5f; }
-`;
+const assetDir = path.join(__dirname, 'assets');
+const localHighlightsCss = fs.readFileSync(path.join(assetDir, 'local-highlights.css'), 'utf8');
+const bundlePath = path.resolve(__dirname, '../../cdn/public/assets/local-highlights.js');
 
 const fragmentManifest = {
   name: 'local-highlights',
@@ -64,9 +56,6 @@ http
     }
 
     if (requestUrl.pathname === '/assets/local-highlights.js') {
-      const bundlePath = require('node:path').resolve(__dirname, '../../cdn/public/assets/local-highlights.js');
-      const fs = require('node:fs');
-
       if (!fs.existsSync(bundlePath)) {
         res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
         res.end('Bundle not generated yet. Run the bundle watcher or build script.');

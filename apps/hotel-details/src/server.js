@@ -1,20 +1,15 @@
 const http = require('node:http');
+const fs = require('node:fs');
+const path = require('node:path');
 require('@marko/compiler/register');
 const { getHotelById } = require('@marko-mfe/mock-data');
 const template = require('./hotel-details.marko').default;
 
 const port = Number(process.env.PORT || 3103);
 const CDN_BASE_URL = process.env.CDN_BASE_URL || 'http://localhost:3200';
-const detailsCss = `
-  .details-panel { display:block; }
-  .details-panel .location { color:#5f696f; }
-  .details-grid { display:flex; justify-content:space-between; align-items:end; gap:16px; }
-  .feature-list { list-style:none; padding:0; margin:0; display:flex; flex-wrap:wrap; gap:10px; }
-  .feature-list li { background:rgba(97,86,164,.08); color:#6156a4; padding:8px 12px; border-radius:999px; font-weight:600; }
-  .booking-card { background:#fffdfb; border:1px solid rgba(23,35,40,.08); border-radius:18px; padding:18px; }
-  .primary-button { background:#0d6b5f; color:white; border-radius:999px; padding:14px 20px; border:none; }
-`;
-const detailsJs = `window.__harborstayDetails = true;`;
+const assetDir = path.join(__dirname, 'assets');
+const detailsCss = fs.readFileSync(path.join(assetDir, 'details.css'), 'utf8');
+const detailsJs = fs.readFileSync(path.join(assetDir, 'details.js'), 'utf8');
 const fragmentManifest = {
  name: 'details',
  version: 'harborstay-fragment/v1',
