@@ -1,0 +1,17 @@
+{
+  "name": "@marko-mfe/local-highlights",
+  "version": "1.0.0",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "dev": "node src/watch-client.js",
+    "build": "node src/build-client.js && node --check src/server.js",
+    "start": "node src/server.js"
+  },
+  "dependencies": {
+    "@marko-mfe/mock-data": "workspace:*",
+    "esbuild": "^0.25.4",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1"
+  }
+}

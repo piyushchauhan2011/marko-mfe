@@ -6,3 +6,4 @@ coverage
 .DS_Store
 apps/*/node_modules
 packages/*/node_modules
+apps/cdn/public/assets/local-highlights.js

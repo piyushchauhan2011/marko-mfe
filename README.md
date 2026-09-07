@@ -21,6 +21,7 @@ HarborStay is a lightweight microfrontend demo built around a Turborepo monorepo
 - Hotel details MFE: `apps/hotel-details` — selected stay detail fragment
 - Reviews MFE: `apps/reviews` — guest review cards
 - Recommendations MFE: `apps/recommendations` — related stays
+- React highlights MFE: `apps/local-highlights` — SSR-rendered local recommendations for a hotel stay with a hydrated React client bundle
 - Shared data: `packages/mock-data` — mock hotel, review, and recommendation data
 
 ## Run locally

@@ -8,6 +8,7 @@
     "dev:hotel-details": "cd apps/hotel-details && npm run dev",
     "build": "turbo run build",
     "start": "turbo run start",
+    "start:prod": "pnpm build && turbo run start",
     "lint": "turbo run lint"
   },
   "devDependencies": {

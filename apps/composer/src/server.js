@@ -8,6 +8,7 @@ const FRAGMENTS = {
   navigation: 'http://localhost:3101',
   search: 'http://localhost:3102',
   details: 'http://localhost:3103',
+  experiences: 'http://localhost:3106',
   reviews: 'http://localhost:3104',
   recommendations: 'http://localhost:3105',
 };
@@ -17,6 +18,7 @@ const STREAM_DELAY_MS = 420;
 const FRAGMENT_STREAM_DELAY_MS = {
   search: 160,
   details: 540,
+  experiences: 720,
   reviews: 860,
   recommendations: 300,
 };
@@ -779,6 +781,7 @@ function buildPage(hotelId, fragments) {
           <main class="main-column">
             ${createFragmentContainer('search', selectedHotel.id).replace('<!-- fragment:search -->', fragments.search.html)}
             ${createFragmentContainer('details', selectedHotel.id).replace('<!-- fragment:details -->', fragments.details.html)}
+            ${createFragmentContainer('experiences', selectedHotel.id).replace('<!-- fragment:experiences -->', fragments.experiences.html)}
             ${createFragmentContainer('reviews', selectedHotel.id).replace('<!-- fragment:reviews -->', fragments.reviews.html)}
             ${createFragmentContainer('recommendations', selectedHotel.id).replace('<!-- fragment:recommendations -->', fragments.recommendations.html)}
           </main>
@@ -906,19 +909,20 @@ async function safeRenderFragment(key, hotelId, delayMs = 0) {
 }
 
 async function renderPage(hotelId) {
-  const [search, details, reviews, recommendations] = await Promise.all([
+  const [search, details, experiences, reviews, recommendations] = await Promise.all([
     safeRenderFragment('search', hotelId, FRAGMENT_STREAM_DELAY_MS.search),
     safeRenderFragment('details', hotelId, FRAGMENT_STREAM_DELAY_MS.details),
+    safeRenderFragment('experiences', hotelId, FRAGMENT_STREAM_DELAY_MS.experiences),
     safeRenderFragment('reviews', hotelId, FRAGMENT_STREAM_DELAY_MS.reviews),
     safeRenderFragment('recommendations', hotelId, FRAGMENT_STREAM_DELAY_MS.recommendations),
   ]);
 
-  return buildPage(hotelId, { search, details, reviews, recommendations });
+  return buildPage(hotelId, { search, details, experiences, reviews, recommendations });
 }
 
 async function* streamPage(hotelId) {
   const selectedHotel = getHotelById(hotelId);
-  const fragmentOrder = ['search', 'details', 'reviews', 'recommendations'];
+  const fragmentOrder = ['search', 'details', 'experiences', 'reviews', 'recommendations'];
   const headPrefix = `<!DOCTYPE html>
   <html lang="en">
     <head>

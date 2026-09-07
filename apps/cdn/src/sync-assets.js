@@ -95,12 +95,36 @@ const assetLibrary = {
     .recommendation-footer { display: flex; align-items: center; justify-content: space-between; }
   `,
   'recommendations.js': `window.__harborstayCdnRecommendations = true;`,
+  'local-highlights.css': `
+    .highlights-panel { display: block; }
+    .highlights-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+    .highlights-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; }
+    .highlight-card { background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(247,243,238,0.92)); border: 1px solid rgba(22,44,48,0.09); border-radius: 18px; padding: 18px; cursor: pointer; transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease; }
+    .highlight-card:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(17, 62, 58, 0.08); }
+    .highlight-card.is-selected { border-color: rgba(13, 107, 95, 0.5); box-shadow: 0 18px 32px rgba(13, 107, 95, 0.09); }
+    .highlight-card .eyebrow { text-transform: uppercase; letter-spacing: .08em; color: #5f696f; font-size: 0.72rem; font-weight: 700; }
+    .highlight-card h3 { margin: 8px 0 10px; font-size: 1.1rem; }
+    .highlight-card p { margin: 0; color: #5f696f; line-height: 1.5; }
+    .highlight-card .meta { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; font-size: 0.8rem; font-weight: 700; color: #0d6b5f; }
+  `,
   'brand-mark.svg': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120"><rect width="120" height="120" rx="28" fill="#dff6ef"/><path d="M60 18 76 52 112 60 76 68 60 102 44 68 8 60 44 52 60 18z" fill="#0d6b5f"/></svg>`,
 };
 
 fs.mkdirSync(publicDir, { recursive: true });
+
+const bundlePath = path.resolve(__dirname, '../../local-highlights/src/build-client.js');
+const generatedBundlePath = path.join(publicDir, 'local-highlights.js');
+
 for (const [fileName, fileContent] of Object.entries(assetLibrary)) {
   fs.writeFileSync(path.join(publicDir, fileName), fileContent, 'utf8');
+}
+
+if (fs.existsSync(generatedBundlePath)) {
+  const builtBundle = fs.readFileSync(generatedBundlePath, 'utf8');
+  fs.writeFileSync(generatedBundlePath, builtBundle, 'utf8');
+  console.log(`Preserved generated local-highlights bundle at ${generatedBundlePath}`);
+} else {
+  console.log(`No generated local-highlights bundle found yet at ${generatedBundlePath}; using static CDN copy only.`);
 }
 
 console.log(`Simulated CDN copy complete: ${Object.keys(assetLibrary).length} assets in ${publicDir}`);
