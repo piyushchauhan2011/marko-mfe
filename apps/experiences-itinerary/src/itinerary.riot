@@ -1,0 +1,49 @@
+<itinerary-builder>
+  <section class="riot-itinerary-panel" data-fragment-role="experiences-itinerary">
+    <div class="riot-itinerary-header">
+      <h2>Build your day plan</h2>
+      <p>{ props.hotelName }</p>
+    </div>
+    <div class="riot-day-switcher">
+      <button
+        each={ day in state.days }
+        type="button"
+        class={ `riot-day-button ${state.selectedDay === day ? 'is-active' : ''}` }
+        onclick={ () => selectDay(day) }
+      >
+        { day }
+      </button>
+    </div>
+    <ul class="riot-itinerary-list">
+      <li class="riot-itinerary-item" each={ item in activeItems }>
+        <span class="riot-itinerary-time">{ item.time }</span>
+        <div>
+          <strong>{ item.title }</strong>
+          <p>{ item.note }</p>
+        </div>
+      </li>
+    </ul>
+  </section>
+
+  <script>
+    export default {
+      state: {
+        days: [],
+        selectedDay: 'Day 1',
+      },
+      onBeforeMount(props) {
+        const days = Object.keys(props.schedule || {});
+        this.state = {
+          days,
+          selectedDay: days[0] || 'Day 1',
+        };
+      },
+      selectDay(day) {
+        this.update({ selectedDay: day });
+      },
+      get activeItems() {
+        return this.props.schedule?.[this.state.selectedDay] || [];
+      },
+    };
+  </script>
+</itinerary-builder>

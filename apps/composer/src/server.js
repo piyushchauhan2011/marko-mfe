@@ -9,6 +9,8 @@ const FRAGMENTS = {
   search: 'http://localhost:3102',
   details: 'http://localhost:3103',
   experiences: 'http://localhost:3106',
+  'experiences-discovery': 'http://localhost:3107',
+  'experiences-itinerary': 'http://localhost:3108',
   reviews: 'http://localhost:3104',
   recommendations: 'http://localhost:3105',
 };
@@ -19,6 +21,8 @@ const FRAGMENT_STREAM_DELAY_MS = {
   search: 160,
   details: 540,
   experiences: 720,
+  'experiences-discovery': 380,
+  'experiences-itinerary': 520,
   reviews: 860,
   recommendations: 300,
 };
@@ -771,7 +775,7 @@ function buildPage(hotelId, fragments) {
           <div class="brand">HarborStay</div>
           <nav aria-label="Main navigation" class="nav-links">
             <a class="nav-link active" href="/hotel/${selectedHotel.id}">Stays</a>
-            <a class="nav-link" href="#">Experiences</a>
+            <a class="nav-link" href="/experiences/${selectedHotel.id}">Experiences</a>
             <a class="nav-link" href="#">Flights</a>
             <a class="nav-link" href="#">Support</a>
           </nav>
@@ -893,6 +897,160 @@ function buildConfirmationPage(hotelId) {
   </html>`;
 }
 
+function buildExperiencesPage(hotelId, fragments) {
+  const selectedHotel = getHotelById(hotelId);
+
+  return `<!DOCTYPE html>
+  <html lang="en">
+    <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>HarborStay Experiences</title>
+      <style>
+        :root {
+          --line: rgba(22, 44, 48, 0.09);
+          --text: #172328;
+          --muted: #5f696f;
+          --primary: #0d6b5f;
+          --primary-strong: #0a4d44;
+          --accent: #ff8f5a;
+          --shadow: 0 24px 60px rgba(17, 62, 58, 0.13);
+        }
+
+        * { box-sizing: border-box; }
+        html, body { margin: 0; }
+        body {
+          background:
+            radial-gradient(circle at top right, rgba(255, 143, 90, 0.18), transparent 24%),
+            radial-gradient(circle at top left, rgba(13, 107, 95, 0.14), transparent 28%),
+            linear-gradient(180deg, #f8f5f0 0%, #f1e9df 100%);
+          color: var(--text);
+          font-family: Inter, "Segoe UI", sans-serif;
+        }
+
+        .page-shell {
+          max-width: 1220px;
+          margin: 0 auto;
+          padding: 28px 18px 56px;
+        }
+
+        .topbar {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 16px 22px;
+          margin-bottom: 24px;
+          gap: 18px;
+          background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(223, 246, 239, 0.72));
+          border: 1px solid rgba(13, 107, 95, 0.12);
+          border-radius: 24px;
+          box-shadow: var(--shadow);
+          backdrop-filter: blur(10px);
+        }
+
+        .brand {
+          font-size: clamp(1.5rem, 2vw, 1.9rem);
+          font-weight: 900;
+          letter-spacing: -0.08em;
+          color: var(--primary-strong);
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+
+        .brand::before {
+          content: "✦";
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 32px;
+          height: 32px;
+          background: linear-gradient(135deg, var(--accent), #e66d3c);
+          border-radius: 10px;
+          color: white;
+          font-size: 0.9rem;
+          box-shadow: 0 12px 26px rgba(230, 109, 60, 0.35);
+        }
+
+        .nav-links {
+          display: flex;
+          gap: 18px;
+          flex-wrap: wrap;
+          align-items: center;
+        }
+
+        .nav-link {
+          color: var(--muted);
+          text-decoration: none;
+          font-weight: 700;
+          transition: color 0.2s ease;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+          color: var(--primary);
+        }
+
+        .main-column {
+          display: flex;
+          flex-direction: column;
+          gap: 22px;
+        }
+
+        .route-intro {
+          background: rgba(255, 255, 255, 0.65);
+          border: 1px solid var(--line);
+          border-radius: 20px;
+          padding: 18px 20px;
+          box-shadow: 0 16px 30px rgba(17, 62, 58, 0.08);
+        }
+
+        .route-intro p {
+          margin: 0;
+          color: var(--muted);
+          line-height: 1.6;
+        }
+
+        .fragment-error {
+          color: #9b1c1c;
+          font-weight: 600;
+          padding: 18px;
+          border-radius: 16px;
+          background: rgba(255, 255, 255, 0.78);
+          border: 1px solid rgba(155, 28, 28, 0.2);
+        }
+      </style>
+    </head>
+    <body>
+      <div class="page-shell">
+        <header class="topbar">
+          <div class="brand">HarborStay</div>
+          <nav aria-label="Main navigation" class="nav-links">
+            <a class="nav-link" href="/hotel/${selectedHotel.id}">Stays</a>
+            <a class="nav-link active" href="/experiences/${selectedHotel.id}">Experiences</a>
+            <a class="nav-link" href="#">Flights</a>
+            <a class="nav-link" href="#">Support</a>
+          </nav>
+        </header>
+
+        <main class="main-column">
+          <section class="route-intro">
+            <p>Discover neighborhood moments and build your day-by-day plan around <strong>${selectedHotel.name}</strong>.</p>
+          </section>
+          ${createFragmentContainer('experiences-discovery', selectedHotel.id).replace(
+            '<!-- fragment:experiences-discovery -->',
+            fragments.discovery.html
+          )}
+          ${createFragmentContainer('experiences-itinerary', selectedHotel.id).replace(
+            '<!-- fragment:experiences-itinerary -->',
+            fragments.itinerary.html
+          )}
+        </main>
+      </div>
+    </body>
+  </html>`;
+}
+
 async function safeRenderFragment(key, hotelId, delayMs = 0) {
   try {
     if (delayMs > 0) {
@@ -918,6 +1076,15 @@ async function renderPage(hotelId) {
   ]);
 
   return buildPage(hotelId, { search, details, experiences, reviews, recommendations });
+}
+
+async function renderExperiencesPage(hotelId) {
+  const [discovery, itinerary] = await Promise.all([
+    safeRenderFragment('experiences-discovery', hotelId, FRAGMENT_STREAM_DELAY_MS['experiences-discovery']),
+    safeRenderFragment('experiences-itinerary', hotelId, FRAGMENT_STREAM_DELAY_MS['experiences-itinerary']),
+  ]);
+
+  return buildExperiencesPage(hotelId, { discovery, itinerary });
 }
 
 async function* streamPage(hotelId) {
@@ -1367,7 +1534,7 @@ async function* streamPage(hotelId) {
           <div class="brand">HarborStay</div>
           <nav aria-label="Main navigation" class="nav-links">
             <a class="nav-link active" href="/hotel/${selectedHotel.id}">Stays</a>
-            <a class="nav-link" href="#">Experiences</a>
+            <a class="nav-link" href="/experiences/${selectedHotel.id}">Experiences</a>
             <a class="nav-link" href="#">Flights</a>
             <a class="nav-link" href="#">Support</a>
           </nav>
@@ -1462,6 +1629,15 @@ app.get('/hotel/:hotelId', async (request, reply) => {
   reply.header('x-ssr-stream', 'true');
   reply.header('x-fragment-protocol', 'harborstay-fragment/v1');
   return Readable.from(streamPage(hotel.id));
+});
+
+app.get('/experiences/:hotelId', async (request, reply) => {
+  const hotelId = request.params.hotelId || 'harbor-view';
+  const hotel = getHotelById(hotelId);
+  const page = await renderExperiencesPage(hotel.id);
+  reply.type('text/html; charset=utf-8');
+  reply.header('x-fragment-protocol', 'harborstay-fragment/v1');
+  return page;
 });
 
 app.get('/booking/confirm/:hotelId', async (request, reply) => {

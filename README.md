@@ -1,6 +1,6 @@
 # HarborStay — Marko SSR MFE hotel booking demo
 
-HarborStay is a lightweight microfrontend demo built around a Turborepo monorepo, a Fastify composer shell, and multiple Marko SSR fragment apps. It models a premium travel booking experience with independent UI fragments, hotel-specific routes, and a confirmation flow.
+HarborStay is a lightweight microfrontend demo built around a Turborepo monorepo, a Fastify composer shell, and multiple SSR fragment apps (Marko, React, and Riot). It models a premium travel booking experience with independent UI fragments, hotel-specific routes, and a confirmation flow.
 
 ## What this demo includes
 
@@ -22,15 +22,21 @@ HarborStay is a lightweight microfrontend demo built around a Turborepo monorepo
 - Reviews MFE: `apps/reviews` — guest review cards
 - Recommendations MFE: `apps/recommendations` — related stays
 - React highlights MFE: `apps/local-highlights` — SSR-rendered local recommendations for a hotel stay with a hydrated React client bundle
+- Riot discovery MFE: `apps/experiences-discovery` — experience category explorer with Riot client interactivity
+- Riot itinerary MFE: `apps/experiences-itinerary` — day-by-day planner with Riot client interactivity
 - Shared data: `packages/mock-data` — mock hotel, review, and recommendation data
 
 ## Run locally
 
 1. Install dependencies:
    `pnpm install`
-2. Start the workspace:
-   `pnpm dev`
-3. Open the app:
+2. Start the home/hotel flow workspace:
+   `pnpm dev:home` (or `pnpm dev`)
+3. Start only the experiences flow workspace:
+   `pnpm dev:experiences`
+4. Start every app:
+   `pnpm dev:all`
+5. Open the app:
    `http://localhost:3100`
 
 ## Available routes
@@ -38,6 +44,7 @@ HarborStay is a lightweight microfrontend demo built around a Turborepo monorepo
 - Home: `http://localhost:3100/`
 - Hotel detail: `http://localhost:3100/hotel/harbor-view`
 - Another hotel: `http://localhost:3100/hotel/moss-lantern`
+- Experiences: `http://localhost:3100/experiences/harbor-view`
 - Booking confirmation: `http://localhost:3100/booking/confirm/moss-lantern`
 
 ## Fragment endpoints
@@ -47,6 +54,9 @@ HarborStay is a lightweight microfrontend demo built around a Turborepo monorepo
 - Details: `http://localhost:3103`
 - Reviews: `http://localhost:3104`
 - Recommendations: `http://localhost:3105`
+- React local highlights: `http://localhost:3106`
+- Riot experiences discovery: `http://localhost:3107`
+- Riot experiences itinerary: `http://localhost:3108`
 
 ## Optional tmux helper
 

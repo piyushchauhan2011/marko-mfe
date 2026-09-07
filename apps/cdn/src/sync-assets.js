@@ -15,6 +15,8 @@ const fragmentAssetFiles = [
   { source: path.resolve(__dirname, '../../recommendations/src/assets/recommendations.css'), target: 'recommendations.css' },
   { source: path.resolve(__dirname, '../../recommendations/src/assets/recommendations.js'), target: 'recommendations.js' },
   { source: path.resolve(__dirname, '../../local-highlights/src/assets/local-highlights.css'), target: 'local-highlights.css' },
+  { source: path.resolve(__dirname, '../../experiences-discovery/src/assets/experiences-discovery.css'), target: 'experiences-discovery.css' },
+  { source: path.resolve(__dirname, '../../experiences-itinerary/src/assets/experiences-itinerary.css'), target: 'experiences-itinerary.css' },
 ];
 
 const staticAssets = {
@@ -41,6 +43,8 @@ function syncAssets() {
 
   const generatedBundlePath = path.join(publicDir, 'local-highlights.js');
   const generatedSearchBundlePath = path.join(publicDir, 'search.js');
+  const generatedDiscoveryBundlePath = path.join(publicDir, 'experiences-discovery.js');
+  const generatedItineraryBundlePath = path.join(publicDir, 'experiences-itinerary.js');
   if (fs.existsSync(generatedBundlePath)) {
     console.log(`Preserved generated local-highlights bundle at ${generatedBundlePath}`);
   } else {
@@ -50,6 +54,16 @@ function syncAssets() {
     console.log(`Preserved generated search bundle at ${generatedSearchBundlePath}`);
   } else {
     console.log(`No generated search bundle found yet at ${generatedSearchBundlePath}; run hotel-search build to generate it.`);
+  }
+  if (fs.existsSync(generatedDiscoveryBundlePath)) {
+    console.log(`Preserved generated experiences-discovery bundle at ${generatedDiscoveryBundlePath}`);
+  } else {
+    console.log(`No generated experiences-discovery bundle found yet at ${generatedDiscoveryBundlePath}; run experiences-discovery build to generate it.`);
+  }
+  if (fs.existsSync(generatedItineraryBundlePath)) {
+    console.log(`Preserved generated experiences-itinerary bundle at ${generatedItineraryBundlePath}`);
+  } else {
+    console.log(`No generated experiences-itinerary bundle found yet at ${generatedItineraryBundlePath}; run experiences-itinerary build to generate it.`);
   }
 
   console.log(`Simulated CDN copy complete: ${fragmentAssetFiles.length + Object.keys(staticAssets).length} assets in ${publicDir}`);

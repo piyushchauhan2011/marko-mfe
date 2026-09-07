@@ -1,0 +1,88 @@
+.riot-experiences-panel {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(247, 243, 238, 0.95));
+  border: 1px solid rgba(22, 44, 48, 0.09);
+  border-radius: 22px;
+  box-shadow: 0 20px 44px rgba(17, 62, 58, 0.08);
+  padding: 24px;
+}
+
+.riot-experiences-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.riot-experiences-header h2 {
+  margin: 0;
+}
+
+.riot-experiences-header p {
+  margin: 0;
+  color: #5f696f;
+}
+
+.riot-category-list {
+  display: flex;
+  gap: 10px;
+  margin: 12px 0 18px;
+  flex-wrap: wrap;
+}
+
+.riot-category-button {
+  border: 1px solid rgba(22, 44, 48, 0.13);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+  font: inherit;
+  font-weight: 700;
+  color: #172328;
+  padding: 8px 14px;
+  cursor: pointer;
+}
+
+.riot-category-button.is-active {
+  border-color: rgba(13, 107, 95, 0.4);
+  background: rgba(13, 107, 95, 0.12);
+  color: #0d6b5f;
+}
+
+.riot-experience-grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+}
+
+.riot-experience-card {
+  border: 1px solid rgba(22, 44, 48, 0.1);
+  border-radius: 16px;
+  background: #fffdfb;
+  padding: 14px;
+}
+
+.riot-experience-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.riot-experience-meta strong {
+  display: block;
+}
+
+.riot-experience-tag {
+  border-radius: 999px;
+  background: rgba(255, 143, 90, 0.14);
+  color: #a3451f;
+  font-weight: 700;
+  font-size: 0.78rem;
+  padding: 5px 10px;
+}
+
+.riot-experience-card p {
+  margin: 0;
+  color: #5f696f;
+  line-height: 1.5;
+}

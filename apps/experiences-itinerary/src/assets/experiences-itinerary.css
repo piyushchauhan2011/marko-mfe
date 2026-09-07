@@ -1,0 +1,76 @@
+.riot-itinerary-panel {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(247, 243, 238, 0.95));
+  border: 1px solid rgba(22, 44, 48, 0.09);
+  border-radius: 22px;
+  box-shadow: 0 20px 44px rgba(17, 62, 58, 0.08);
+  padding: 24px;
+}
+
+.riot-itinerary-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.riot-itinerary-header h2 {
+  margin: 0;
+}
+
+.riot-itinerary-header p {
+  margin: 0;
+  color: #5f696f;
+}
+
+.riot-day-switcher {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.riot-day-button {
+  border: 1px solid rgba(22, 44, 48, 0.13);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+  font: inherit;
+  font-weight: 700;
+  color: #172328;
+  padding: 8px 14px;
+  cursor: pointer;
+}
+
+.riot-day-button.is-active {
+  border-color: rgba(13, 107, 95, 0.4);
+  background: rgba(13, 107, 95, 0.12);
+  color: #0d6b5f;
+}
+
+.riot-itinerary-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.riot-itinerary-item {
+  border-radius: 14px;
+  border: 1px solid rgba(22, 44, 48, 0.1);
+  background: #fffdfb;
+  padding: 12px 14px;
+  display: grid;
+  grid-template-columns: 78px 1fr;
+  gap: 12px;
+  align-items: start;
+}
+
+.riot-itinerary-time {
+  font-weight: 700;
+  color: #0d6b5f;
+}
+
+.riot-itinerary-item p {
+  margin: 2px 0 0;
+  color: #5f696f;
+}

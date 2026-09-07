@@ -3,8 +3,10 @@
   "private": true,
   "packageManager": "pnpm@9.15.0",
   "scripts": {
-    "dev": "turbo run dev --filter '!@marko-mfe/hotel-details'",
+    "dev": "pnpm dev:home",
     "dev:all": "turbo run dev",
+    "dev:home": "turbo run dev --filter=@marko-mfe/composer --filter=@marko-mfe/cdn --filter=@marko-mfe/navigation --filter=@marko-mfe/hotel-search --filter=@marko-mfe/hotel-details --filter=@marko-mfe/reviews --filter=@marko-mfe/recommendations --filter=@marko-mfe/local-highlights",
+    "dev:experiences": "turbo run dev --filter=@marko-mfe/composer --filter=@marko-mfe/cdn --filter=@marko-mfe/experiences-discovery --filter=@marko-mfe/experiences-itinerary",
     "dev:hotel-details": "cd apps/hotel-details && npm run dev",
     "build": "turbo run build",
     "start": "turbo run start",

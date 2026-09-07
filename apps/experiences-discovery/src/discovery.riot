@@ -1,0 +1,53 @@
+<discovery-experiences>
+  <section class="riot-experiences-panel" data-fragment-role="experiences-discovery">
+    <div class="riot-experiences-header">
+      <h2>Explore nearby</h2>
+      <p>{ props.hotelName }</p>
+    </div>
+    <div class="riot-category-list">
+      <button
+        each={ category in state.categories }
+        type="button"
+        class={ `riot-category-button ${state.activeCategory === category ? 'is-active' : ''}` }
+        onclick={ () => selectCategory(category) }
+      >
+        { category }
+      </button>
+    </div>
+    <div class="riot-experience-grid">
+      <article class="riot-experience-card" each={ item in visibleExperiences }>
+        <div class="riot-experience-meta">
+          <strong>{ item.title }</strong>
+          <span class="riot-experience-tag">{ item.category }</span>
+        </div>
+        <p>{ item.description }</p>
+      </article>
+    </div>
+  </section>
+
+  <script>
+    export default {
+      state: {
+        categories: ['All'],
+        activeCategory: 'All',
+      },
+      onBeforeMount(props) {
+        const categories = ['All', ...new Set((props.experiences || []).map((item) => item.category))];
+        this.state = {
+          categories,
+          activeCategory: this.state.activeCategory || 'All',
+        };
+      },
+      selectCategory(category) {
+        this.update({ activeCategory: category });
+      },
+      get visibleExperiences() {
+        const all = this.props.experiences || [];
+        if (this.state.activeCategory === 'All') {
+          return all;
+        }
+        return all.filter((item) => item.category === this.state.activeCategory);
+      },
+    };
+  </script>
+</discovery-experiences>
