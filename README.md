@@ -66,6 +66,23 @@ The monorepo runs well with Turborepo's native parallel dev runner. If you want 
 
 This creates or reuses a `marko-mfe` tmux session and runs the project from there.
 
+## Developer docs
+
+In-depth documentation lives in the [`docs/`](./docs/) folder:
+
+| Doc | Summary |
+|---|---|
+| [Architecture](./docs/architecture.md) | Composer shell, fragment protocol, port map, CDN simulation |
+| [LCP / FCP / INP](./docs/performance-lcp-fcp-inp.md) | Web Vitals and streaming SSR impact |
+| [Fonts and images](./docs/performance-fonts-images.md) | FOIT/FOUT, WebP/AVIF, lazy loading |
+| [JS loading and Islands](./docs/performance-js-loading.md) | Islands architecture, deferred hydration, Intersection Observer |
+| [Compression](./docs/performance-compression.md) | Brotli, gzip, CDN headers, precompressed assets |
+| [State management](./docs/state-management.md) | Fragment-local state, BroadcastChannel, cross-MFE events |
+| [SSR and hydration](./docs/ssr-and-hydration.md) | Marko streaming, React renderToString, Riot pre-render, serialised props |
+| [Deployment](./docs/deployment.md) | Containers, env vars, health endpoints, rolling deploys |
+| [CI/CD and DevOps](./docs/ci-cd-devops.md) | GitHub Actions, Turbo remote cache, Docker, smoke tests |
+| [Future optimizations](./docs/future-optimizations.md) | Edge SSR, partial prerendering, service workers, RSC |
+
 ## Notes
 
 This is a demo-first microfrontend setup rather than a production platform. The goal is to show how independent SSR fragments can be composed behind a neutral shell while keeping each fragment independently deployable and easy to reason about.
