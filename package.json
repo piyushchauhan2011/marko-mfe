@@ -3,7 +3,9 @@
   "private": true,
   "packageManager": "pnpm@9.15.0",
   "scripts": {
-    "dev": "turbo run dev --parallel",
+    "dev": "turbo run dev --filter '!@marko-mfe/hotel-details'",
+    "dev:all": "turbo run dev",
+    "dev:hotel-details": "cd apps/hotel-details && npm run dev",
     "build": "turbo run build",
     "start": "turbo run start",
     "lint": "turbo run lint"
