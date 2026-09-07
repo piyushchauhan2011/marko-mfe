@@ -8,11 +8,12 @@ function buildClientBundle() {
   fs.mkdirSync(path.dirname(outfile), { recursive: true });
 
   esbuild.buildSync({
-    entryPoints: [path.join(appRoot, 'client.js')],
+    entryPoints: [path.join(appRoot, 'client.jsx')],
     bundle: true,
     platform: 'browser',
     format: 'iife',
     minify: true,
+    jsx: 'automatic',
     target: ['chrome100', 'firefox100', 'safari15'],
     outfile,
     globalName: 'HarborStayLocalHighlights',

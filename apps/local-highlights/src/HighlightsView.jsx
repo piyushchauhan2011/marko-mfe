@@ -33,50 +33,40 @@ function HighlightsContent({ hotelId = 'harbor-view', selectedIndex = 0, onSelec
   const hotel = getHotelById(hotelId);
   const highlights = getHighlightsForHotel(hotelId);
 
-  return React.createElement(
-    'section',
-    { className: 'panel highlights-panel' },
-    React.createElement(
-      'div',
-      { className: 'highlights-header' },
-      React.createElement(
-        'div',
-        null,
-        React.createElement('p', { className: 'eyebrow' }, 'Local highlights'),
-        React.createElement('h2', null, `What to do in ${hotel.location.split(',')[0]}`)
-      )
-    ),
-    React.createElement(
-      'div',
-      { className: 'highlights-grid' },
-      highlights.map((item, index) =>
-        React.createElement(
-          'article',
-          {
-            key: item.title,
-            className: `highlight-card${selectedIndex === index ? ' is-selected' : ''}`,
-            onClick: onSelect ? () => onSelect(index) : undefined,
-          },
-          React.createElement('div', { className: 'eyebrow' }, item.label),
-          React.createElement('h3', null, item.title),
-          React.createElement('p', null, item.description),
-          React.createElement(
-            'div',
-            { className: 'meta' },
-            React.createElement('span', null, item.time),
-            React.createElement('span', null, selectedIndex === index ? 'Selected' : 'Plan')
-          )
-        )
-      )
-    )
+  return (
+    <section className="panel highlights-panel">
+      <div className="highlights-header">
+        <div>
+          <p className="eyebrow">Local highlights</p>
+          <h2>What to do in {hotel.location.split(',')[0]}</h2>
+        </div>
+      </div>
+      <div className="highlights-grid">
+        {highlights.map((item, index) => (
+          <article
+            key={item.title}
+            className={`highlight-card${selectedIndex === index ? ' is-selected' : ''}`}
+            onClick={onSelect ? () => onSelect(index) : undefined}
+          >
+            <div className="eyebrow">{item.label}</div>
+            <h3>{item.title}</h3>
+            <p>{item.description}</p>
+            <div className="meta">
+              <span>{item.time}</span>
+              <span>{selectedIndex === index ? 'Selected' : 'Plan'}</span>
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
   );
 }
 
 function HighlightsView({ hotelId = 'harbor-view', selectedIndex = 0, onSelect }) {
-  return React.createElement(
-    'div',
-    { id: 'local-highlights-root', className: 'fragment local-highlights-fragment', 'data-hotel-id': hotelId },
-    React.createElement(HighlightsContent, { hotelId, selectedIndex, onSelect })
+  return (
+    <div id="local-highlights-root" className="fragment local-highlights-fragment" data-hotel-id={hotelId}>
+      <HighlightsContent hotelId={hotelId} selectedIndex={selectedIndex} onSelect={onSelect} />
+    </div>
   );
 }
 

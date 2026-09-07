@@ -1,7 +1,11 @@
 const http = require('node:http');
 const React = require('react');
 const { renderToStaticMarkup } = require('react-dom/server');
-const { HighlightsView } = require('./HighlightsView');
+
+// esbuild-register lets Node require .jsx files at runtime without a separate compile step
+require('esbuild-register/dist/node').register({ jsx: 'automatic' });
+
+const { HighlightsView } = require('./HighlightsView.jsx');
 
 const PORT = Number(process.env.PORT || 3106);
 const CDN_BASE_URL = process.env.CDN_BASE_URL || 'http://localhost:3200';
