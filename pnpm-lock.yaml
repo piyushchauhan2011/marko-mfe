@@ -43,6 +43,9 @@ importers:
       '@marko/compiler':
         specifier: ^5.42.4
         version: 5.42.4
+      esbuild:
+        specifier: ^0.25.4
+        version: 0.25.12
       marko:
         specifier: ^6.1.12
         version: 6.3.49

@@ -7,7 +7,6 @@
 .hotel-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px; }
 .hotel-card { background: #fffdfb; border: 1px solid rgba(23,35,40,.08); border-radius: 18px; padding: 18px; transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease; }
 .hotel-card.is-hidden { display: none; }
-.hotel-card.selected { border-color: rgba(13,107,95,.42); box-shadow: 0 16px 30px rgba(13,107,95,.08); }
 .hotel-body { display: flex; flex-direction: column; gap: 10px; }
 .hotel-thumb { min-height: 110px; border-radius: 16px; background: linear-gradient(135deg,#dfe9e6,#c9d9d5); display:flex; align-items:center; justify-content:center; font-weight:700; color:#0a4d44; }
 .card-header { display:flex; justify-content:space-between; align-items:center; }

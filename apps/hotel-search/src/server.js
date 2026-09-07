@@ -9,7 +9,7 @@ const port = Number(process.env.PORT || 3102);
 const CDN_BASE_URL = process.env.CDN_BASE_URL || 'http://localhost:3200';
 const assetDir = path.join(__dirname, 'assets');
 const searchCss = fs.readFileSync(path.join(assetDir, 'search.css'), 'utf8');
-const searchJs = fs.readFileSync(path.join(assetDir, 'search.js'), 'utf8');
+const searchBundlePath = path.resolve(__dirname, '../../cdn/public/assets/search.js');
 const fragmentManifest = {
  name: 'search',
  version: 'harborstay-fragment/v1',
@@ -25,6 +25,10 @@ const assetTags = `
 
 function renderHtml(input) {
   return template.render(input).toString();
+}
+
+function serializeFragmentData(data) {
+  return JSON.stringify(data).replace(/</g, '\\u003c');
 }
 
 http
@@ -50,11 +54,17 @@ http
     }
 
     if (requestUrl.pathname === '/assets/search.js') {
+      if (!fs.existsSync(searchBundlePath)) {
+        res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+        res.end('Search bundle not generated yet. Run hotel-search build or dev watcher.');
+        return;
+      }
+
       res.writeHead(200, {
         'Content-Type': 'application/javascript; charset=utf-8',
         'Cache-Control': 'no-cache',
       });
-      res.end(searchJs);
+      res.end(fs.readFileSync(searchBundlePath, 'utf8'));
       return;
     }
 
@@ -87,7 +97,10 @@ http
       return;
     }
 
-    res.end(`${assetTags}${html}`);
+    const fragmentData = serializeFragmentData({ hotels, hotelId });
+    res.end(
+      `${assetTags}<script type="application/json" id="hotel-search-fragment-data">${fragmentData}</script><div id="hotel-search-fragment-root">${html}</div>`
+    );
   })
   .listen(port, () => {
     console.log(`Hotel search MFE running on http://localhost:${port}`);

@@ -1,0 +1,58 @@
+<let/activeFilter="all">
+
+<div class="fragment search-fragment">
+  <section class="panel search-panel">
+    <div class="search-head">
+      <div>
+        <p class="eyebrow">Find a stay</p>
+        <h2>Where to next?</h2>
+      </div>
+      <button class="ghost-button">Filters</button>
+    </div>
+
+    <div class="search-bar">
+      <span>Lisbon</span>
+      <span>4 guests</span>
+      <span>Any week</span>
+    </div>
+
+    <div class="filter-row" role="tablist" aria-label="Hotel filters">
+      <button class=["filter-chip", { "is-active": activeFilter === "all" }] type="button" onClick() { activeFilter = "all" }>All stays</button>
+      <button class=["filter-chip", { "is-active": activeFilter === "value" }] type="button" onClick() { activeFilter = "value" }>Value</button>
+      <button class=["filter-chip", { "is-active": activeFilter === "luxury" }] type="button" onClick() { activeFilter = "luxury" }>Luxury</button>
+      <button class=["filter-chip", { "is-active": activeFilter === "top-rated" }] type="button" onClick() { activeFilter = "top-rated" }>Top rated</button>
+    </div>
+
+    <div class="hotel-grid">
+      <for|hotel| of=input.hotels by="id">
+        <const/isVisible=
+          activeFilter === "all" ||
+          (activeFilter === "value" && hotel.price <= 220) ||
+          (activeFilter === "luxury" && hotel.price >= 240) ||
+          (activeFilter === "top-rated" && hotel.rating >= 4.8)
+        >
+        <article
+          class=["hotel-card", { "is-hidden": !isVisible }]
+          data-hotel-id=hotel.id
+          data-price=hotel.price
+          data-rating=hotel.rating
+        >
+          <div class="hotel-thumb">${hotel.tag}</div>
+          <div class="hotel-body">
+            <div class="card-header">
+              <h3>${hotel.name}</h3>
+              <span>${hotel.rating} ★</span>
+            </div>
+            <p class="location">${hotel.location}</p>
+            <p class="description">${hotel.description}</p>
+            <div class="card-footer">
+              <strong>$${hotel.price}</strong>
+              <span>/night</span>
+            </div>
+            <button class="select-room" type="button">View stay</button>
+          </div>
+        </article>
+      </for>
+    </div>
+  </section>
+</div>

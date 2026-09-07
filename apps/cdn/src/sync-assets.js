@@ -8,7 +8,6 @@ const fragmentAssetFiles = [
   { source: path.resolve(__dirname, '../../navigation/src/assets/navigation.css'), target: 'navigation.css' },
   { source: path.resolve(__dirname, '../../navigation/src/assets/navigation.js'), target: 'navigation.js' },
   { source: path.resolve(__dirname, '../../hotel-search/src/assets/search.css'), target: 'search.css' },
-  { source: path.resolve(__dirname, '../../hotel-search/src/assets/search.js'), target: 'search.js' },
   { source: path.resolve(__dirname, '../../hotel-details/src/assets/details.css'), target: 'details.css' },
   { source: path.resolve(__dirname, '../../hotel-details/src/assets/details.js'), target: 'details.js' },
   { source: path.resolve(__dirname, '../../reviews/src/assets/reviews.css'), target: 'reviews.css' },
@@ -41,10 +40,16 @@ function syncAssets() {
   }
 
   const generatedBundlePath = path.join(publicDir, 'local-highlights.js');
+  const generatedSearchBundlePath = path.join(publicDir, 'search.js');
   if (fs.existsSync(generatedBundlePath)) {
     console.log(`Preserved generated local-highlights bundle at ${generatedBundlePath}`);
   } else {
     console.log(`No generated local-highlights bundle found yet at ${generatedBundlePath}; run local-highlights build to generate it.`);
+  }
+  if (fs.existsSync(generatedSearchBundlePath)) {
+    console.log(`Preserved generated search bundle at ${generatedSearchBundlePath}`);
+  } else {
+    console.log(`No generated search bundle found yet at ${generatedSearchBundlePath}; run hotel-search build to generate it.`);
   }
 
   console.log(`Simulated CDN copy complete: ${fragmentAssetFiles.length + Object.keys(staticAssets).length} assets in ${publicDir}`);
