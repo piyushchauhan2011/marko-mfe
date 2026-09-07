@@ -1,0 +1,4 @@
+.reviews-panel { display: block; }
+.reviews-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 18px; }
+.review-card { background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(247,243,238,0.92)); border: 1px solid rgba(22,44,48,0.09); border-radius: 18px; padding: 18px; }
+.review-head { display: flex; justify-content: space-between; align-items: center; }

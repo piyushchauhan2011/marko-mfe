@@ -1,16 +1,15 @@
 const http = require('node:http');
+const fs = require('node:fs');
+const path = require('node:path');
 require('@marko/compiler/register');
 const { getRecommendationsForHotel } = require('@marko-mfe/mock-data');
 const template = require('./recommendations.marko').default;
 
 const port = Number(process.env.PORT || 3105);
 const CDN_BASE_URL = process.env.CDN_BASE_URL || 'http://localhost:3200';
-const recommendationsCss = `
-  .recommendations-panel { display:block; }
-  .recommendation-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(190px, 1fr)); gap:18px; }
-  .recommendation-card { background:#fffdfb; border:1px solid rgba(23,35,40,.08); border-radius:18px; padding:18px; }
-`;
-const recommendationsJs = `window.__harborstayRecommendations = true;`;
+const assetDir = path.join(__dirname, 'assets');
+const recommendationsCss = fs.readFileSync(path.join(assetDir, 'recommendations.css'), 'utf8');
+const recommendationsJs = fs.readFileSync(path.join(assetDir, 'recommendations.js'), 'utf8');
 const fragmentManifest = {
  name: 'recommendations',
  version: 'harborstay-fragment/v1',

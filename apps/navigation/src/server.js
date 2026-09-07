@@ -1,18 +1,14 @@
 const http = require('node:http');
+const fs = require('node:fs');
+const path = require('node:path');
 require('@marko/compiler/register');
 const template = require('./navigation.marko').default;
 
 const port = Number(process.env.PORT || 3101);
 const CDN_BASE_URL = process.env.CDN_BASE_URL || 'http://localhost:3200';
-const navigationCss = `
-  .navigation-fragment { display:block; }
-  .topbar { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:18px 22px; background:linear-gradient(135deg, rgba(255,255,255,0.9), rgba(223,246,239,0.75)); border:1px solid rgba(13,107,95,.1); border-radius:24px; box-shadow:0 14px 30px rgba(17,62,58,.08); }
-  .brand { font-size:clamp(1.4rem, 2vw, 1.7rem); font-weight:900; letter-spacing:-.08em; color:#0a4d44; }
-  .nav-links { display:flex; gap:18px; flex-wrap:wrap; align-items:center; }
-  .nav-link { color:#5f696f; text-decoration:none; font-weight:700; }
-  .nav-link.active { color:#0d6b5f; }
-`;
-const navigationJs = `window.__harborstayNav = true;`;
+const assetDir = path.join(__dirname, 'assets');
+const navigationCss = fs.readFileSync(path.join(assetDir, 'navigation.css'), 'utf8');
+const navigationJs = fs.readFileSync(path.join(assetDir, 'navigation.js'), 'utf8');
 const fragmentManifest = {
  name: 'navigation',
  version: 'harborstay-fragment/v1',

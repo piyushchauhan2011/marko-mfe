@@ -1,26 +1,15 @@
 const http = require('node:http');
+const fs = require('node:fs');
+const path = require('node:path');
 require('@marko/compiler/register');
 const { getFeaturedHotels } = require('@marko-mfe/mock-data');
 const template = require('./hotel-search.marko').default;
 
 const port = Number(process.env.PORT || 3102);
 const CDN_BASE_URL = process.env.CDN_BASE_URL || 'http://localhost:3200';
-const searchCss = `
-  .search-panel { display:block; }
-  .search-head { display:flex; justify-content:space-between; align-items:center; }
-  .search-bar { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:12px; background:#f7f3ee; border:1px solid rgba(23,35,40,.1); border-radius:18px; padding:14px 16px; }
-  .hotel-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:18px; }
-  .hotel-card { background:#fffdfb; border:1px solid rgba(23,35,40,.08); border-radius:18px; padding:18px; }
-  .hotel-card.selected { border-color:rgba(13,107,95,.42); box-shadow:0 16px 30px rgba(13,107,95,.08); }
-  .hotel-body { display:flex; flex-direction:column; gap:10px; }
-  .hotel-thumb { min-height:110px; border-radius:16px; background:linear-gradient(135deg,#dfe9e6,#c9d9d5); display:flex; align-items:center; justify-content:center; font-weight:700; color:#0a4d44; }
-  .card-header { display:flex; justify-content:space-between; align-items:center; }
-  .pill { display:inline-flex; border-radius:999px; padding:7px 10px; background:rgba(21,91,71,0.08); color:#0d6b5f; font-size:.74rem; font-weight:700; }
-  .primary-button, .ghost-button { border:none; border-radius:999px; padding:10px 16px; font-weight:700; cursor:pointer; }
-  .primary-button { background:#0d6b5f; color:white; }
-  .ghost-button { background:transparent; border:1px solid rgba(23,35,40,.08); color:#172328; }
-`;
-const searchJs = `window.__harborstaySearch = true;`;
+const assetDir = path.join(__dirname, 'assets');
+const searchCss = fs.readFileSync(path.join(assetDir, 'search.css'), 'utf8');
+const searchJs = fs.readFileSync(path.join(assetDir, 'search.js'), 'utf8');
 const fragmentManifest = {
  name: 'search',
  version: 'harborstay-fragment/v1',
